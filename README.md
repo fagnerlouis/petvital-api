@@ -51,6 +51,114 @@ As regras de negócio (RN) definem as políticas e restrições que governam o s
 
 ---
 
+## 2.5. Regras de Comercialização e Operação da Plataforma SaaS
+
+As regras abaixo complementam o MVP do PetVital, permitindo sua utilização comercial em ambiente SaaS multi-inquilino.
+
+### 2.5.1. Regras de Assinatura e Cobrança
+
+| ID | Regra de Negócio | Detalhes |
+| :--- | :--- | :--- |
+| **RN018** | **Plano Obrigatório** | Toda clínica deve possuir uma assinatura ativa associada a um plano para utilizar o sistema. |
+| **RN019** | **Período de Teste (Trial)** | Novas clínicas poderão receber um período de avaliação gratuito configurável em dias. |
+| **RN020** | **Bloqueio por Inadimplência** | Clínicas com assinaturas vencidas além do prazo de tolerância deverão ter o acesso bloqueado automaticamente. |
+| **RN021** | **Preservação de Dados** | O bloqueio da assinatura não poderá excluir ou alterar dados da clínica. O acesso apenas ficará indisponível até a regularização. |
+| **RN022** | **Histórico Financeiro de Assinaturas** | Todas as cobranças, pagamentos, cancelamentos e alterações de plano deverão ser registrados para auditoria. |
+| **RN023** | **Mudança de Plano** | O sistema deverá permitir upgrade ou downgrade de plano sem perda de dados. |
+| **RN024** | **Limites por Plano** | Cada plano poderá possuir restrições configuráveis de usuários, armazenamento, envios de mensagens ou outras funcionalidades. |
+| **RN025** | **Cancelamento da Assinatura** | O cancelamento não poderá remover dados da clínica. Os registros deverão permanecer armazenados pelo período definido na política da plataforma. |
+
+### 2.5.2. Regras de Administração Global da Plataforma
+
+| ID | Regra de Negócio | Detalhes |
+| :--- | :--- | :--- |
+| **RN026** | **Perfil Super Administrador** | O sistema deverá possuir o perfil `SUPER_ADMIN`, responsável pela administração global da plataforma SaaS. |
+| **RN027** | **Acesso Global Restrito** | Apenas usuários com perfil `SUPER_ADMIN` poderão visualizar informações de todas as clínicas. |
+| **RN028** | **Gerenciamento de Clínicas** | O Super Administrador poderá ativar, desativar, bloquear ou liberar clínicas. |
+| **RN029** | **Monitoramento da Plataforma** | O painel administrativo deverá exibir métricas globais de utilização da plataforma. |
+| **RN030** | **Auditoria Administrativa** | Todas as ações realizadas por Super Administradores deverão ser registradas em auditoria específica. |
+
+### 2.5.3. Regras de Recuperação de Senha
+
+| ID | Regra de Negócio | Detalhes |
+| :--- | :--- | :--- |
+| **RN031** | **Solicitação de Recuperação** | Usuários poderão solicitar recuperação de senha utilizando o e-mail cadastrado. |
+| **RN032** | **Token Temporário** | O sistema deverá gerar token único e temporário para redefinição da senha. |
+| **RN033** | **Expiração de Token** | Tokens expirados não poderão ser reutilizados. |
+| **RN034** | **Uso Único** | Após utilização, o token deverá ser invalidado imediatamente. |
+| **RN035** | **Registro de Evento** | Solicitações de recuperação e redefinições deverão ser registradas para fins de segurança. |
+
+### 2.5.4. Regras de Monitoramento e Logs de Erro
+
+| ID | Regra de Negócio | Detalhes |
+| :--- | :--- | :--- |
+| **RN036** | **Registro de Exceções** | Toda exceção não tratada deverá ser registrada em log centralizado. |
+| **RN037** | **Rastreabilidade de Erros** | O log deverá conter data, usuário, endpoint, tenant e detalhes técnicos do erro. |
+| **RN038** | **Preservação de Evidências** | Logs de erro não poderão ser alterados manualmente pela aplicação. |
+| **RN039** | **Monitoramento de Integrações** | Falhas em integrações externas deverão possuir registro detalhado. |
+| **RN040** | **Notificação de Falhas Críticas** | Erros classificados como críticos deverão gerar alertas automáticos para administradores da plataforma. |
+
+### 2.5.5. Regras de Backup e Recuperação
+
+| ID | Regra de Negócio | Detalhes |
+| :--- | :--- | :--- |
+| **RN041** | **Backup Automático** | O sistema deverá executar backups automáticos periódicos do banco de dados. |
+| **RN042** | **Retenção de Backups** | Os backups deverão ser armazenados por período configurável. |
+| **RN043** | **Recuperação de Dados** | A plataforma deverá possuir procedimento documentado de restauração. |
+| **RN044** | **Proteção Contra Exclusões Acidentais** | Dados removidos deverão permanecer recuperáveis durante período de retenção definido. |
+| **RN045** | **Validação de Integridade** | Os backups deverão ser validados periodicamente para garantir recuperação consistente. |
+
+### 2.5.6. Regras de Dashboard Gerencial
+
+| ID | Regra de Negócio | Detalhes |
+| :--- | :--- | :--- |
+| **RN046** | **Indicadores Operacionais** | O dashboard deverá exibir indicadores operacionais relevantes para a clínica. |
+| **RN047** | **Indicadores Financeiros** | O dashboard deverá apresentar métricas financeiras consolidadas. |
+| **RN048** | **Informações em Tempo Real** | Os indicadores deverão refletir os dados mais recentes disponíveis. |
+| **RN049** | **Personalização** | Clínicas poderão habilitar ou ocultar widgets específicos. |
+| **RN050** | **Acesso por Perfil** | Os indicadores exibidos deverão respeitar as permissões do usuário. |
+
+### 2.5.7. Regras de Controle de Caixa
+
+| ID | Regra de Negócio | Detalhes |
+| :--- | :--- | :--- |
+| **RN051** | **Movimentação Financeira** | O sistema deverá registrar entradas e saídas financeiras da clínica. |
+| **RN052** | **Fechamento Diário** | O caixa poderá ser fechado diariamente por usuário autorizado. |
+| **RN053** | **Rastreabilidade** | Toda movimentação deverá registrar usuário responsável, data e motivo. |
+| **RN054** | **Conciliação Financeira** | Os registros financeiros deverão permitir conferência com pagamentos registrados. |
+| **RN055** | **Imutabilidade de Fechamentos** | Fechamentos concluídos não poderão ser alterados sem autorização administrativa. |
+
+### 2.5.8. Regras de Serviços Prestados
+
+| ID | Regra de Negócio | Detalhes |
+| :--- | :--- | :--- |
+| **RN056** | **Cadastro de Serviços** | O sistema deverá permitir cadastro de serviços prestados pela clínica. |
+| **RN057** | **Precificação Individual** | Cada serviço deverá possuir valor configurável. |
+| **RN058** | **Ativação e Inativação** | Serviços poderão ser ativados ou desativados sem exclusão histórica. |
+| **RN059** | **Vinculação Financeira** | Serviços executados poderão gerar faturamento automaticamente. |
+| **RN060** | **Histórico de Execução** | O sistema deverá manter histórico completo dos serviços realizados. |
+
+### 2.5.9. Regras de Emissão de Documentos PDF
+
+| ID | Regra de Negócio | Detalhes |
+| :--- | :--- | :--- |
+| **RN061** | **Geração de PDF** | O sistema deverá gerar documentos em formato PDF para impressão ou compartilhamento. |
+| **RN062** | **Padronização Visual** | Os documentos deverão seguir identidade visual da clínica. |
+| **RN063** | **Integridade do Documento** | O conteúdo gerado deverá refletir fielmente os dados registrados no sistema. |
+| **RN064** | **Rastreabilidade** | Todo documento emitido deverá possuir registro de emissão. |
+| **RN065** | **Controle de Permissão** | Apenas usuários autorizados poderão gerar determinados documentos clínicos. |
+
+### 2.5.10. Regras de Fotos e Mídias de Pacientes
+
+| ID | Regra de Negócio | Detalhes |
+| :--- | :--- | :--- |
+| **RN066** | **Foto de Identificação** | O cadastro do animal deverá permitir foto principal para identificação visual. |
+| **RN067** | **Armazenamento Seguro** | As imagens deverão ser armazenadas em área privada e protegida. |
+| **RN068** | **Controle de Acesso** | Apenas usuários autorizados poderão visualizar ou alterar mídias do paciente. |
+| **RN069** | **Histórico Clínico Visual** | O sistema poderá armazenar fotos clínicas vinculadas a consultas e procedimentos. |
+| **RN070** | **Formatos Suportados** | O sistema deverá validar formatos e tamanhos máximos de arquivos enviados. |
+
+---
 
 ## 3. Requisitos Funcionais (RF)
 
@@ -70,6 +178,16 @@ Os requisitos funcionais descrevem as funções que o sistema deve executar para
 | **RF010** | **Comunicação** | O sistema deve enviar lembretes automáticos de vacina e retorno via WhatsApp, com base nas regras configuradas por clínica. |
 | **RF011** | **Comunicação** | O sistema deve permitir o envio de mensagens em massa (`comunicacao_massa`) para os tutores que aceitaram a comunicação informativa. |
 | **RF012** | **Auditoria** | O sistema deve manter um registro de auditoria (`consulta_historico`) para todas as alterações feitas no prontuário. |
+| **RF013** | **Assinaturas** | O sistema deve permitir gerenciamento de planos, assinaturas e períodos de teste. |
+| **RF014** | **Administração SaaS** | O sistema deve fornecer painel global para Super Administradores. |
+| **RF015** | **Segurança** | O sistema deve permitir recuperação de senha via e-mail. |
+| **RF016** | **Monitoramento** | O sistema deve registrar e consultar logs de erro da aplicação. |
+| **RF017** | **Backup** | O sistema deve permitir gerenciamento dos processos de backup e restauração. |
+| **RF018** | **Dashboard** | O sistema deve exibir indicadores operacionais e financeiros da clínica. |
+| **RF019** | **Financeiro** | O sistema deve permitir controle de caixa e fechamento diário. |
+| **RF020** | **Serviços** | O sistema deve permitir cadastro e gerenciamento de serviços veterinários. |
+| **RF021** | **Documentos** | O sistema deve gerar documentos PDF padronizados. |
+| **RF022** | **Mídias** | O sistema deve permitir upload e gerenciamento de fotos dos pacientes. |
 
 ---
 
@@ -86,6 +204,12 @@ Os requisitos não funcionais descrevem critérios de qualidade e restrições t
 | **RNF005** | **Usabilidade** | A interface do usuário deve ser intuitiva, responsiva e otimizada para uso em tablets (para o veterinário em campo). |
 | **RNF006** | **Padronização** | O código e o banco de dados devem seguir o padrão de nomenclatura `snake_case` e incluir campos de auditoria de data (`data_add`, `data_alt`). |
 | **RNF007** | **Design** | O design da interface deve utilizar a paleta de cores definida: Azul Principal (`#2A80FF`), Verde Água (`#17C3B2`), etc. |
+| **RNF008** | **Escalabilidade** | A arquitetura deverá suportar crescimento horizontal da quantidade de clínicas sem impacto significativo na performance. |
+| **RNF009** | **Observabilidade** | O sistema deverá possuir monitoramento centralizado de erros e métricas. |
+| **RNF010** | **Backup** | O ambiente deverá possuir rotinas automatizadas de backup e restauração testadas periodicamente. |
+| **RNF011** | **Segurança** | Tokens de recuperação de senha deverão ser criptograficamente seguros e temporários. |
+| **RNF012** | **Documentos** | A geração de PDFs deverá ocorrer em tempo inferior a 5 segundos para documentos padrão. |
+| **RNF013** | **Armazenamento** | Arquivos e imagens deverão utilizar armazenamento seguro e privado com controle de acesso. |
 
 ---
 
@@ -93,7 +217,7 @@ Os requisitos não funcionais descrevem critérios de qualidade e restrições t
 
 A modelagem de dados a seguir representa o Diagrama de Entidade-Relacionamento (DER) do MVP, utilizando a notação Mermaid.
 
-**Nota:** O diagrama representa as 22 tabelas do modelo final, com a implementação de Multitenancy e as novas funcionalidades de Comunicação e Auditoria.
+**Nota:** O diagrama representa as 30 tabelas do modelo final, com a implementação de Multitenancy, Administração SaaS, Assinaturas, Caixa, Serviços e Auditoria.
 
 ```mermaid
 erDiagram
@@ -109,6 +233,20 @@ erDiagram
     clinica ||--o{ comunicacao_massa : "pertence"
     clinica ||--o{ comunicacao_historico : "pertence"
     clinica ||--o{ auditoria_log : "pertence"
+    clinica ||--o{ assinatura : "tem"
+    plano ||--o{ assinatura : "contem"
+    usuario ||--o{ recuperacao_senha_token : "solicitou"
+    usuario ||--o{ log_erro : "gerou"
+    clinica ||--o{ log_erro : "gerou"
+    clinica ||--o{ caixa_diario : "possui"
+    usuario ||--o{ caixa_diario : "abriu_ou_fechou"
+    caixa_diario ||--o{ caixa_movimentacao : "registra"
+    clinica ||--o{ caixa_movimentacao : "possui"
+    usuario ||--o{ caixa_movimentacao : "efetuou"
+    pagamento ||--o{ caixa_movimentacao : "concilia"
+    clinica ||--o{ servico : "oferece"
+    clinica ||--o{ documento_emitido : "emitiu"
+    usuario ||--o{ documento_emitido : "gerou"
 
     tutor ||--o{ animal : "tutor_principal"
     tutor }|--|{ tutor_animal : "vincula"
@@ -275,6 +413,66 @@ erDiagram
         int id PK
         int clinica_id FK
         int usuario_id FK
+    }
+
+    plano {
+        int id PK
+        varchar nome
+        numeric preco
+        int limite_usuarios
+    }
+
+    assinatura {
+        int id PK
+        int clinica_id FK
+        int plano_id FK
+        varchar status
+    }
+
+    recuperacao_senha_token {
+        int id PK
+        int usuario_id FK
+        varchar token
+        timestamp data_expiracao
+    }
+
+    log_erro {
+        int id PK
+        int clinica_id FK
+        int usuario_id FK
+        varchar classe_excecao
+    }
+
+    caixa_diario {
+        int id PK
+        int clinica_id FK
+        int usuario_abertura_id FK
+        int usuario_fechamento_id FK
+        varchar status
+    }
+
+    caixa_movimentacao {
+        int id PK
+        int clinica_id FK
+        int caixa_diario_id FK
+        int usuario_id FK
+        varchar tipo_movimentacao
+        numeric valor
+    }
+
+    servico {
+        int id PK
+        int clinica_id FK
+        varchar nome
+        numeric preco
+    }
+
+    documento_emitido {
+        int id PK
+        int clinica_id FK
+        int usuario_id FK
+        varchar tipo_documento
+        int referencia_id
     }
 ```
 

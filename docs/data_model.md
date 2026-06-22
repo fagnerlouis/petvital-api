@@ -36,6 +36,8 @@ Armazena os dados de cada clínica (inquilino) que utiliza o sistema.
 | `ativo` | BOOLEAN | DEFAULT TRUE | Indica se o inquilino está ativo no sistema. |
 | `whatsapp_api_token` | VARCHAR(255) | | Token de acesso à API do WhatsApp Business (Armazenado criptografado na aplicação via AES-256-GCM). |
 | `whatsapp_numero` | VARCHAR(20) | | Número de telefone configurado para a API. |
+| `bloqueada` | BOOLEAN | DEFAULT FALSE | Indica se a clínica está bloqueada por inadimplência. |
+| `deletado` | BOOLEAN | DEFAULT FALSE | Flag de exclusão lógica (Soft Delete) para retenção e recuperação. |
 | `data_add` | TIMESTAMP | DEFAULT NOW() | Data de criação do registro. |
 | `data_alt` | TIMESTAMP | DEFAULT NOW() | Data da última alteração. |
 
@@ -48,13 +50,14 @@ Armazena os dados dos usuários que acessam o sistema (Administrador, Veterinár
 | Coluna | Tipo de Dado | Restrições | Descrição |
 | :--- | :--- | :--- | :--- |
 | `id` | SERIAL | PRIMARY KEY | Identificador único do usuário. |
-| `clinica_id` | INTEGER | FOREIGN KEY (Clinica) | **Chave de Multitenancy.** Liga o usuário à sua clínica. |
+| `clinica_id` | INTEGER | FOREIGN KEY (Clinica), Nullable | **Chave de Multitenancy.** Liga o usuário à sua clínica (nulo para SUPER_ADMIN). |
 | `nome` | VARCHAR(255) | NOT NULL | Nome completo do usuário. |
 | `email` | VARCHAR(255) | UNIQUE, NOT NULL | E-mail de login. |
 | `senha_hash` | VARCHAR(255) | NOT NULL | Hash da senha (nunca a senha em texto claro). |
-| `perfil` | VARCHAR(50) | NOT NULL | Perfil de acesso (Ex: 'ADMIN', 'VETERINARIO', 'RECEPCAO'). |
+| `perfil` | VARCHAR(50) | NOT NULL | Perfil de acesso (Ex: 'SUPER_ADMIN', 'ADMIN', 'VETERINARIO', 'RECEPCAO'). |
 | `crmv` | VARCHAR(20) | | Número do CRMV (apenas para Veterinários). |
 | `ativo` | BOOLEAN | DEFAULT TRUE | Indica se o usuário está ativo. |
+| `deletado` | BOOLEAN | DEFAULT FALSE | Flag de exclusão lógica (Soft Delete). |
 | `data_add` | TIMESTAMP | DEFAULT NOW() | Data de criação do registro. |
 | `data_alt` | TIMESTAMP | DEFAULT NOW() | Data da última alteração. |
 
@@ -186,6 +189,8 @@ Armazena referências a arquivos (imagens, PDFs, vídeos) vinculados a uma consu
 | `nome_arquivo` | VARCHAR(255) | NOT NULL | Nome original do arquivo. |
 | `url_armazenamento` | VARCHAR(512) | NOT NULL | URL do arquivo no S3/GCS. |
 | `tipo_mime` | VARCHAR(100) | | Tipo MIME do arquivo (ex: image/jpeg, application/pdf). |
+| `categoria` | VARCHAR(50) | NOT NULL | Categoria do anexo (ex: 'IDENTIFICACAO_PACIENTE', 'EXAME_PDF', 'FOTO_CLINICA'). |
+| `deletado` | BOOLEAN | DEFAULT FALSE | Flag de exclusão lógica (Soft Delete). |
 | `data_add` | TIMESTAMP | DEFAULT NOW() | Data de criação do registro. |
 | `data_alt` | TIMESTAMP | DEFAULT NOW() | Data da última alteração. |
 
@@ -443,14 +448,154 @@ Armazena o histórico de alterações do prontuário (tabela `consulta`), garant
 
 ---
 
+## 23. Tabela: plano
+
+Armazena as definições de planos comercializados na plataforma SaaS.
+
+| Coluna | Tipo de Dado | Restrições | Descrição |
+| :--- | :--- | :--- | :--- |
+| `id` | SERIAL | PRIMARY KEY | Identificador único do plano. |
+| `nome` | VARCHAR(100) | UNIQUE, NOT NULL | Nome comercial (ex: 'Bronze', 'Prata', 'Ouro'). |
+| `preco` | NUMERIC(10, 2) | NOT NULL | Valor mensal da assinatura. |
+| `limite_usuarios` | INTEGER | | Limite de usuários ativos na clínica. |
+| `limite_armazenamento_bytes` | BIGINT | | Limite de bytes para arquivos de anexos. |
+| `limite_mensagens` | INTEGER | | Limite de envios de mensagens mensais via WhatsApp. |
+| `ativo` | BOOLEAN | DEFAULT TRUE | Indica se o plano está sendo comercializado. |
+| `deletado` | BOOLEAN | DEFAULT FALSE | Flag de exclusão lógica (Soft Delete). |
+
+---
+
+## 24. Tabela: assinatura
+
+Armazena as assinaturas ativas e histórico comercial das clínicas contratantes.
+
+| Coluna | Tipo de Dado | Restrições | Descrição |
+| :--- | :--- | :--- | :--- |
+| `id` | SERIAL | PRIMARY KEY | Identificador único da assinatura. |
+| `clinica_id` | INTEGER | FOREIGN KEY (Clinica) | Clínica associada à assinatura. |
+| `plano_id` | INTEGER | FOREIGN KEY (Plano) | Plano contratado. |
+| `status` | VARCHAR(50) | NOT NULL | Status ('ATIVA', 'TRIAL', 'ATRASADA', 'BLOQUEADA', 'CANCELADA'). |
+| `data_inicio` | TIMESTAMP | NOT NULL | Data de início da vigência. |
+| `data_fim_vigencia` | TIMESTAMP | | Data de término da vigência atual. |
+| `data_fim_trial` | TIMESTAMP | | Data de término da fase gratuita de testes. |
+| `deletado` | BOOLEAN | DEFAULT FALSE | Flag de exclusão lógica (Soft Delete). |
+| `data_add` | TIMESTAMP | DEFAULT NOW() | Data de criação do registro. |
+| `data_alt` | TIMESTAMP | DEFAULT NOW() | Data da última alteração. |
+
+---
+
+## 25. Tabela: recuperacao_senha_token
+
+Armazena os tokens temporários gerados para fluxo de recuperação de credenciais de usuários.
+
+| Coluna | Tipo de Dado | Restrições | Descrição |
+| :--- | :--- | :--- | :--- |
+| `id` | SERIAL | PRIMARY KEY | Identificador único do token. |
+| `usuario_id` | INTEGER | FOREIGN KEY (Usuario) | Usuário que solicitou a recuperação. |
+| `token` | VARCHAR(255) | UNIQUE, NOT NULL | Token criptograficamente seguro gerado pela aplicação. |
+| `data_expiracao` | TIMESTAMP | NOT NULL | Data e hora limite para uso. |
+| `usado` | BOOLEAN | DEFAULT FALSE | Indica se o token já foi consumido. |
+| `data_add` | TIMESTAMP | DEFAULT NOW() | Data de solicitação. |
+
+---
+
+## 26. Tabela: log_erro
+
+Armazena o registro de exceções técnicas ocorridas na execução da API para suporte e depuração.
+
+| Coluna | Tipo de Dado | Restrições | Descrição |
+| :--- | :--- | :--- | :--- |
+| `id` | SERIAL | PRIMARY KEY | Identificador único do log. |
+| `clinica_id` | INTEGER | FOREIGN KEY (Clinica), Nullable | Clínica ativa no momento do erro. |
+| `usuario_id` | INTEGER | FOREIGN KEY (Usuario), Nullable | Usuário que disparou a ação. |
+| `classe_excecao` | VARCHAR(255) | NOT NULL | Nome da classe Java da exceção. |
+| `mensagem` | TEXT | | Mensagem amigável de erro. |
+| `stack_trace` | TEXT | | Stack trace completo da falha técnica. |
+| `endpoint` | VARCHAR(255) | | Caminho do endpoint acessado (ex: '/api/animais'). |
+| `metodo_http` | VARCHAR(10) | | Método da requisição HTTP (ex: 'GET', 'POST'). |
+| `ip_cliente` | VARCHAR(50) | | IP de onde partiu a requisição. |
+| `data_add` | TIMESTAMP | DEFAULT NOW() | Data e hora do registro da falha. |
+
+---
+
+## 27. Tabela: caixa_diario
+
+Controla o estado de abertura, fechamento e fluxo financeiro diário de cada clínica.
+
+| Coluna | Tipo de Dado | Restrições | Descrição |
+| :--- | :--- | :--- | :--- |
+| `id` | SERIAL | PRIMARY KEY | Identificador único da sessão de caixa. |
+| `clinica_id` | INTEGER | FOREIGN KEY (Clinica) | Clínica proprietária do caixa. |
+| `usuario_abertura_id` | INTEGER | FOREIGN KEY (Usuario) | Usuário que realizou a abertura do dia. |
+| `usuario_fechamento_id` | INTEGER | FOREIGN KEY (Usuario), Nullable | Usuário que encerrou o caixa do dia. |
+| `saldo_inicial` | NUMERIC(10, 2) | NOT NULL | Saldo de abertura em caixa. |
+| `saldo_final` | NUMERIC(10, 2) | | Saldo no encerramento (verificado). |
+| `status` | VARCHAR(20) | NOT NULL | Status do caixa ('ABERTO', 'FECHADO'). |
+| `data_abertura` | TIMESTAMP | DEFAULT NOW() | Data/Hora de abertura. |
+| `data_fechamento` | TIMESTAMP | | Data/Hora de encerramento. |
+| `deletado` | BOOLEAN | DEFAULT FALSE | Flag de exclusão lógica (Soft Delete). |
+
+---
+
+## 28. Tabela: caixa_movimentacao
+
+Registra as entradas e saídas detalhadas de dinheiro associadas a um caixa diário ativo.
+
+| Coluna | Tipo de Dado | Restrições | Descrição |
+| :--- | :--- | :--- | :--- |
+| `id` | SERIAL | PRIMARY KEY | Identificador único da movimentação. |
+| `clinica_id` | INTEGER | FOREIGN KEY (Clinica) | Clínica da movimentação. |
+| `caixa_diario_id` | INTEGER | FOREIGN KEY (caixa_diario) | Sessão de caixa ativa correspondente. |
+| `usuario_id` | INTEGER | FOREIGN KEY (Usuario) | Operador responsável pelo lançamento. |
+| `tipo_movimentacao` | VARCHAR(20) | NOT NULL | 'ENTRADA' (recebimento, reforço) ou 'SAIDA' (sangria, despesa). |
+| `valor` | NUMERIC(10, 2) | NOT NULL | Valor monetário movimentado. |
+| `motivo` | VARCHAR(255) | NOT NULL | Descrição ou observações da movimentação. |
+| `referencia_pagamento_id` | INTEGER | FOREIGN KEY (Pagamento), Nullable | Conexão com o pagamento de fatura, se aplicável. |
+| `deletado` | BOOLEAN | DEFAULT FALSE | Flag de exclusão lógica (Soft Delete). |
+| `data_add` | TIMESTAMP | DEFAULT NOW() | Data e hora do lançamento. |
+
+---
+
+## 29. Tabela: servico
+
+Cadastro de procedimentos e consultas veterinárias oferecidos comercialmente pela clínica.
+
+| Coluna | Tipo de Dado | Restrições | Descrição |
+| :--- | :--- | :--- | :--- |
+| `id` | SERIAL | PRIMARY KEY | Identificador único do serviço. |
+| `clinica_id` | INTEGER | FOREIGN KEY (Clinica) | Clínica que oferece o serviço. |
+| `nome` | VARCHAR(255) | NOT NULL | Nome do serviço/procedimento. |
+| `preco` | NUMERIC(10, 2) | NOT NULL | Preço padrão cobrado pela clínica. |
+| `ativo` | BOOLEAN | DEFAULT TRUE | Indica se o serviço está ativo para novos agendamentos. |
+| `deletado` | BOOLEAN | DEFAULT FALSE | Flag de exclusão lógica (Soft Delete). |
+| `data_add` | TIMESTAMP | DEFAULT NOW() | Data de cadastro. |
+| `data_alt` | TIMESTAMP | DEFAULT NOW() | Data da última alteração. |
+
+---
+
+## 30. Tabela: documento_emitido
+
+Registra e rastreia os documentos e laudos médicos gerados em formato PDF pelo sistema.
+
+| Coluna | Tipo de Dado | Restrições | Descrição |
+| :--- | :--- | :--- | :--- |
+| `id` | SERIAL | PRIMARY KEY | Identificador único da emissão. |
+| `clinica_id` | INTEGER | FOREIGN KEY (Clinica) | Clínica emissora. |
+| `usuario_id` | INTEGER | FOREIGN KEY (Usuario) | Usuário que solicitou a geração do PDF. |
+| `tipo_documento` | VARCHAR(50) | NOT NULL | Tipo ('RECEITA', 'LAUDO', 'FATURA'). |
+| `referencia_id` | INTEGER | NOT NULL | ID do registro referenciado (ex: `consulta.id` ou `fatura.id`). |
+| `hash_documento` | VARCHAR(255) | NOT NULL | Hash sha-256 do arquivo gerado para auditoria e controle de integridade. |
+| `deletado` | BOOLEAN | DEFAULT FALSE | Flag de exclusão lógica (Soft Delete). |
+| `data_add` | TIMESTAMP | DEFAULT NOW() | Data de geração do documento. |
+
+---
+
 ## Relacionamentos Chave (Resumo - Atualizado)
 
-*   **Multitenancy:** Todas as tabelas transacionais (tutor, animal, agendamento, consulta, etc.) se relacionam com `clinica(id)` via `clinica_id`.
-*   **Tutor-Animal:** `animal` se relaciona com `tutor` via `tutor_principal_id`. O relacionamento N:N é feito pela tabela `tutor_animal`.
-*   **Atendimento:** `agendamento` -> `consulta` -> `prescricao` -> `prescricao_item`.
-*   **Auditoria:** `consulta_historico` rastreia as alterações na tabela `consulta`.
-*   **Comunicação:** `comunicacao_historico` rastreia mensagens enviadas, usando `comunicacao_template` e `comunicacao_massa`.
-*   **Estoque:** `prescricao_item` e outras transações se relacionam com `produto`. `estoque_movimento` registra as mudanças no estoque.
-*   **Financeiro:** `fatura` se relaciona com `tutor`. `pagamento` se relaciona com `fatura`.
+*   **Multitenancy:** Todas as tabelas transacionais e operacionais de inquilinos se relacionam com `clinica(id)` via `clinica_id`.
+*   **Comercialização:** `assinatura` vincula `clinica` com seu `plano` contratado e limita seus recursos.
+*   **Controle de Caixa:** `caixa_movimentacao` depende de um `caixa_diario` aberto, que por sua vez se conecta às operações de recebimento financeiro (`pagamento`).
+*   **Auditoria de PDFs:** `documento_emitido` armazena referências aos laudos e receitas clínicas gerados, mantendo o controle de autenticidade dos dados impressos/exportados.
+*   **Logs Técnicos:** `log_erro` armazena stack traces e dados técnicos das falhas para monitoramento, sem vincular rigidamente ao tenant (nulo em erros de sistema global).
 
-Este modelo de dados, agora com **22 tabelas**, está completo e robusto para o MVP do **PetVital**.
+Este modelo de dados, agora com **30 tabelas**, está completo e robusto para o sistema comercial multi-inquilino do **PetVital**.
