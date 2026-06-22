@@ -39,7 +39,18 @@ As regras de negócio (RN) definem as políticas e restrições que governam o s
 | **RN011** | **Rastreabilidade de Mensagens** | Todo envio de mensagem (automática ou em massa) deve ser registrado na tabela `comunicacao_historico`, incluindo o conteúdo e o status de envio. |
 | **RN012** | **Registro de Vacina** | O registro de uma `vacina_aplicada` é um ato clínico e não exige vínculo obrigatório com o estoque, permitindo o uso por veterinários autônomos. |
 
+### 2.4. Regras de Segurança e Privacidade (Multitenancy e LGPD)
+
+| ID | Regra de Negócio | Detalhes |
+| :--- | :--- | :--- |
+| **RN013** | **Políticas de RLS no Banco de Dados** | O PostgreSQL deve impor Row Level Security (RLS) em todas as tabelas transacionais que possuem a coluna `clinica_id`, impedindo o vazamento de dados acidental entre inquilinos na base. |
+| **RN014** | **Criptografia de Credenciais de Terceiros** | O campo `whatsapp_api_token` da tabela `clinica` e quaisquer outros tokens confidenciais devem ser armazenados criptografados usando criptografia AES-256-GCM a nível de aplicação. |
+| **RN015** | **Chave de Criptografia Externa** | A chave simétrica para encriptação dos segredos dos inquilinos deve ser injetada na inicialização do Spring Boot através de variáveis de ambiente do sistema operacional, sem custos com cofres de chaves externos. |
+| **RN016** | **Imutabilidade e Restrições de Log** | Não devem existir rotas/funcionalidades de alteração ou exclusão nas tabelas `auditoria_log` e `consulta_historico`. Devem ser aplicadas triggers no banco de dados para impedir `UPDATE` ou `DELETE` nestes registros. |
+| **RN017** | **Acesso Restrito a Arquivos Anexos** | Arquivos carregados na tabela `anexo` devem ser armazenados de maneira totalmente privada. O acesso deve ser intermediado pela aplicação através de URLs assinadas temporárias gratuitas (ex: Supabase Storage) ou controllers Spring Boot que validem as permissões de acesso ao arquivo local. |
+
 ---
+
 
 ## 3. Requisitos Funcionais (RF)
 
@@ -70,7 +81,7 @@ Os requisitos não funcionais descrevem critérios de qualidade e restrições t
 | :--- | :--- | :--- |
 | **RNF001** | **Performance** | O tempo de resposta para a abertura da agenda e do prontuário não deve exceder 2 segundos. |
 | **RNF002** | **Disponibilidade** | O sistema deve ter uma disponibilidade de 99.9% (24/7), hospedado em ambiente de nuvem (AWS/GCP/Azure). |
-| **RNF003** | **Segurança** | O sistema deve implementar controle de acesso baseado em papéis (RBAC) e criptografia de dados sensíveis (LGPD). |
+| **RNF003** | **Segurança** | O sistema deve implementar controle de acesso baseado em papéis (RBAC) em nível de controle e serviço no Spring Security, senhas hasheadas com BCrypt, sessões invalidadas imediatamente em caso de inativação, criptografia em trânsito TLS 1.2+ (com suporte a `mkcert` para HTTPS local gratuito) e controle de taxa de requisições (Rate Limiting). |
 | **RNF004** | **Tecnologia** | O Backend deve ser desenvolvido em **Java/Spring Boot** e o banco de dados deve ser **PostgreSQL**. |
 | **RNF005** | **Usabilidade** | A interface do usuário deve ser intuitiva, responsiva e otimizada para uso em tablets (para o veterinário em campo). |
 | **RNF006** | **Padronização** | O código e o banco de dados devem seguir o padrão de nomenclatura `snake_case` e incluir campos de auditoria de data (`data_add`, `data_alt`). |

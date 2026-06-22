@@ -1,8 +1,10 @@
-# Modelagem de Dados - VetSync (MVP)
+# Modelagem de Dados - PetVital (MVP)
 
 ## Arquitetura: Multi-Inquilino (Multitenancy)
 
-O sistema VetSync será construído com uma arquitetura Multi-Inquilino, onde um único banco de dados PostgreSQL servirá a múltiplas clínicas. O isolamento de dados será garantido pela chave estrangeira `clinica_id` em todas as tabelas transacionais.
+O sistema **PetVital** será construído com uma arquitetura Multi-Inquilino, onde um único banco de dados PostgreSQL servirá a múltiplas clínicas. O isolamento de dados será garantido por uma abordagem de dupla camada:
+1. **Filtro Lógico na Aplicação:** Filtro automático do Hibernate/Spring Data injetando `clinica_id` em todas as consultas.
+2. **Row Level Security (RLS) no PostgreSQL:** Política nativa do banco de dados restringindo linhas ao `clinica_id` da sessão ativa, prevenindo vazamento de dados acidental.
 
 ## Entidades Essenciais do MVP
 
@@ -32,7 +34,7 @@ Armazena os dados de cada clínica (inquilino) que utiliza o sistema.
 | `email` | VARCHAR(255) | UNIQUE | E-mail de contato principal. |
 | `telefone` | VARCHAR(20) | | Telefone de contato. |
 | `ativo` | BOOLEAN | DEFAULT TRUE | Indica se o inquilino está ativo no sistema. |
-| `whatsapp_api_token` | VARCHAR(255) | | Token de acesso à API do WhatsApp Business. |
+| `whatsapp_api_token` | VARCHAR(255) | | Token de acesso à API do WhatsApp Business (Armazenado criptografado na aplicação via AES-256-GCM). |
 | `whatsapp_numero` | VARCHAR(20) | | Número de telefone configurado para a API. |
 | `data_add` | TIMESTAMP | DEFAULT NOW() | Data de criação do registro. |
 | `data_alt` | TIMESTAMP | DEFAULT NOW() | Data da última alteração. |
@@ -343,7 +345,7 @@ Armazena configurações específicas da clínica (protocolos vacinais, textos p
 
 ## 18. Tabela: auditoria_log
 
-Armazena o histórico de alterações em dados sensíveis (LGPD e segurança).
+Armazena o histórico de alterações em dados sensíveis (LGPD e segurança). **Tabela de auditoria imutável (Append-Only), com triggers de banco de dados bloqueando qualquer UPDATE ou DELETE.**
 
 | Coluna | Tipo de Dado | Restrições | Descrição |
 | :--- | :--- | :--- | :--- |
@@ -426,7 +428,7 @@ Este modelo de dados cobre todos os requisitos do MVP (Cadastro, Agenda, Prontu�
 
 ## 22. Tabela: consulta_historico
 
-Armazena o histórico de alterações do prontuário (tabela `consulta`), garantindo rastreabilidade e auditoria detalhada.
+Armazena o histórico de alterações do prontuário (tabela `consulta`), garantindo rastreabilidade e auditoria detalhada. **Tabela de histórico imutável (Append-Only), com triggers de banco de dados bloqueando qualquer UPDATE ou DELETE.**
 
 | Coluna | Tipo de Dado | Restrições | Descrição |
 | :--- | :--- | :--- | :--- |
