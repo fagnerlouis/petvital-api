@@ -115,8 +115,9 @@ Armazena os dados dos animais (pacientes) vinculados a um tutor.
 | `microchip` | VARCHAR(50) | UNIQUE | Número do microchip. |
 | `alergias` | TEXT | | Alergias conhecidas. |
 | `doencas_cronicas` | TEXT | | Doenças crônicas e medicações contínuas. |
-| `foto_url` | VARCHAR(255) | | URL da foto de perfil do animal (armazenada no S3/GCS)| `data_add` | TIMESTAMP | DEFAULT NOW() | Data de criação do registro. |
-| `data_alt` | TIMESTAMP | DEFAULT NOW() | Data da última alteração. || `data_alt` | TIMESTAMP | DEFAULT NOW() | Data da última alteração. |
+| `foto_url` | VARCHAR(255) | | URL da foto de perfil do animal (armazenada no S3/GCS). |
+| `data_add` | TIMESTAMP | DEFAULT NOW() | Data de criação do registro. |
+| `data_alt` | TIMESTAMP | DEFAULT NOW() | Data da última alteração. |
 
 ---
 
@@ -165,14 +166,13 @@ Representa o registro do atendimento veterinário, vinculado a um agendamento.
 | `clinica_id` | INTEGER | FOREIGN KEY (Clinica) | **Chave de Multitenancy.** |
 | `agendamento_id` | INTEGER | FOREIGN KEY (Agendamento) | Agendamento que gerou a consulta. |
 | `veterinario_id` | INTEGER | FOREIGN KEY (Usuario) | Veterinário que realizou o atendimento. |
-| `data_add` | TIMESTAMP | DEFAULT NOW() | Data de criação do registro. |
-| `data_alt` | TIMESTAMP | DEFAULT NOW() | Data da última alteração. |
 | `motivo_consulta` | TEXT | NOT NULL | Motivo da visita. |
 | `anamnese` | TEXT | | Histórico e informações coletadas. |
 | `exame_fisico` | TEXT | | Resultados do exame físico (FC, FR, Tº, etc.). |
 | `diagnostico` | TEXT | | Diagnóstico(s) do caso. |
 | `conduta` | TEXT | | Plano de tratamento e orientações. |
 | `historico_previo` | TEXT | | Histórico prévio e comorbidades relevantes. |
+| `data_add` | TIMESTAMP | DEFAULT NOW() | Data de criação do registro. |
 | `data_alt` | TIMESTAMP | DEFAULT NOW() | Data da última alteração. |
 
 ---
@@ -206,8 +206,10 @@ Armazena o histórico de peso e Escala de Condição Corporal (ECC) do animal.
 | `clinica_id` | INTEGER | FOREIGN KEY (Clinica) | **Chave de Multitenancy.** |
 | `animal_id` | INTEGER | FOREIGN KEY (Animal) | Animal que teve o peso registrado. |
 | `peso_kg` | NUMERIC(5, 2) | NOT NULL | Peso em quilogramas. |
-| `ecc` | INTEGER | | Escala de Condição Corporal (1 a 9). | `data_add` | TIMESTAMP | DEFAULT NOW() | Data de criação do registro. |
-| `data_alt` | TIMESTAMP | DEFAULT NOW() | Data da última alteração. | `usuario_registro_id` | INTEGER | FOREIGN KEY (Usuario) | Usuário que fez o registro. |
+| `ecc` | INTEGER | | Escala de Condição Corporal (1 a 9). |
+| `usuario_registro_id` | INTEGER | FOREIGN KEY (Usuario) | Usuário que fez o registro. |
+| `data_add` | TIMESTAMP | DEFAULT NOW() | Data de criação do registro. |
+| `data_alt` | TIMESTAMP | DEFAULT NOW() | Data da última alteração. |
 
 ---
 
@@ -342,8 +344,8 @@ Armazena configurações específicas da clínica (protocolos vacinais, textos p
 | :--- | :--- | :--- | :--- |
 | `id` | SERIAL | PRIMARY KEY | Identificador único da configuração. |
 | `clinica_id` | INTEGER | FOREIGN KEY (Clinica) | **Chave de Multitenancy.** |
-| `chave` | VARCHAR(100) | NOT NULL | Chave da configuração (Ex: 'PROTOCOLO_VACINAL_CAO', 'LEMBRETE_VACINA_DIAS_ANTECEDENCIA'). |}],path:
-| `valor` | JSONB | | Valor da configuração (JSON para flexibilidade). Ex: `{"dias_antecedencia": 3}`. |}],path:
+| `chave` | VARCHAR(100) | NOT NULL | Chave da configuração (Ex: 'PROTOCOLO_VACINAL_CAO', 'LEMBRETE_VACINA_DIAS_ANTECEDENCIA'). |
+| `valor` | JSONB | | Valor da configuração (JSON para flexibilidade). Ex: `{"dias_antecedencia": 3}`. |
 | **Chave Composta** | | UNIQUE (clinica_id, chave) | Garante que cada clínica tenha apenas uma configuração por chave. |
 
 ---
