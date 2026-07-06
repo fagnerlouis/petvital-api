@@ -221,6 +221,8 @@ A modelagem de dados a seguir representa o Diagrama de Entidade-Relacionamento (
 
 ```mermaid
 erDiagram
+    clinica ||--o{ clinica_telefone : "possui"
+    clinica ||--o{ clinica_endereco : "localiza-se"
     clinica ||--o{ usuario : "pertence"
     clinica ||--o{ tutor : "pertence"
     clinica ||--o{ animal : "pertence"
@@ -284,8 +286,25 @@ erDiagram
 
     clinica {
         int id PK
+        varchar nome
+        varchar nome_fantasia
         varchar tipo_tenant
         varchar documento_fiscal
+        boolean ativo
+    }
+
+    clinica_telefone {
+        int id PK
+        int clinica_id FK
+        varchar numero
+        varchar tipo
+    }
+
+    clinica_endereco {
+        int id PK
+        int clinica_id FK
+        varchar cep
+        varchar cidade
     }
 
     usuario {
