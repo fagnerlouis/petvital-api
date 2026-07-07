@@ -1,5 +1,5 @@
 CREATE TABLE clinica (
-    id SERIAL PRIMARY KEY,
+    id BIGSERIAL PRIMARY KEY,
     nome VARCHAR(255) NOT NULL,
     nome_fantasia VARCHAR(255),
     tipo_tenant VARCHAR(2) NOT NULL CHECK (tipo_tenant IN ('PF', 'PJ')),
@@ -19,8 +19,8 @@ COMMENT ON COLUMN clinica.documento_fiscal IS 'CPF ou CNPJ. Deve ser único (RN0
 COMMENT ON COLUMN clinica.whatsapp_api_token IS 'Token da API do WhatsApp. Deve ser gravado criptografado pela aplicação (RN014).';
 
 CREATE TABLE clinica_telefone (
-    id SERIAL PRIMARY KEY,
-    clinica_id INT NOT NULL REFERENCES clinica(id) ON DELETE CASCADE,
+    id BIGSERIAL PRIMARY KEY,
+    clinica_id BIGINT NOT NULL REFERENCES clinica(id) ON DELETE CASCADE,
     numero VARCHAR(20) NOT NULL,
     tipo VARCHAR(50) NOT NULL, -- Ex: WHATSAPP, CELULAR, FIXO
     is_principal BOOLEAN NOT NULL DEFAULT FALSE
@@ -29,8 +29,8 @@ CREATE TABLE clinica_telefone (
 COMMENT ON TABLE clinica_telefone IS 'Telefones de contato da clínica ou veterinário.';
 
 CREATE TABLE clinica_endereco (
-    id SERIAL PRIMARY KEY,
-    clinica_id INT NOT NULL REFERENCES clinica(id) ON DELETE CASCADE,
+    id BIGSERIAL PRIMARY KEY,
+    clinica_id BIGINT NOT NULL REFERENCES clinica(id) ON DELETE CASCADE,
     cep VARCHAR(10) NOT NULL,
     logradouro VARCHAR(255) NOT NULL,
     numero VARCHAR(50),
