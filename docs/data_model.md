@@ -190,9 +190,9 @@ Controla o fluxo de agendamentos de consultas, vacinas, etc.
 
 ---
 
-## 7. Tabela: consulta
+## 7. Tabela: consulta ✅ Implementado (`V6__criar_tabelas_consulta.sql`)
 
-Representa o registro do atendimento veterinário, vinculado a um agendamento.
+Representa o registro do atendimento veterinário, vinculado a um agendamento. Imutável (RN006).
 
 | Coluna | Tipo de Dado | Restrições | Descrição |
 | :--- | :--- | :--- | :--- |
@@ -206,8 +206,30 @@ Representa o registro do atendimento veterinário, vinculado a um agendamento.
 | `diagnostico` | TEXT | | Diagnóstico(s) do caso. |
 | `conduta` | TEXT | | Plano de tratamento e orientações. |
 | `historico_previo` | TEXT | | Histórico prévio e comorbidades relevantes. |
+| `versao` | INTEGER | NOT NULL DEFAULT 1 | Versão atual do prontuário (RN006). |
 | `data_add` | TIMESTAMP | DEFAULT NOW() | Data de criação do registro. |
 | `data_alt` | TIMESTAMP | DEFAULT NOW() | Data da última alteração. |
+
+---
+
+## 7.1. Tabela: consulta_historico ✅ Implementado (`V6__criar_tabelas_consulta.sql`)
+
+Armazena o histórico de alterações do prontuário para garantir a imutabilidade (RN006).
+
+| Coluna | Tipo de Dado | Restrições | Descrição |
+| :--- | :--- | :--- | :--- |
+| `id` | BIGSERIAL | PRIMARY KEY | Identificador único do registro de histórico. |
+| `clinica_id` | BIGINT | FOREIGN KEY (Clinica) | **Chave de Multitenancy.** |
+| `consulta_id` | BIGINT | FOREIGN KEY (Consulta) | Consulta original sendo versionada. |
+| `usuario_alteracao_id` | BIGINT | FOREIGN KEY (Usuario) | Usuário que realizou a alteração. |
+| `motivo_consulta` | TEXT | NOT NULL | Estado anterior do motivo. |
+| `anamnese` | TEXT | | Estado anterior da anamnese. |
+| `exame_fisico` | TEXT | | Estado anterior do exame físico. |
+| `diagnostico` | TEXT | | Estado anterior do diagnóstico. |
+| `conduta` | TEXT | | Estado anterior da conduta. |
+| `historico_previo` | TEXT | | Estado anterior do histórico prévio. |
+| `versao` | INTEGER | NOT NULL | Versão salva. |
+| `data_alteracao` | TIMESTAMP | DEFAULT NOW() | Data em que a versão foi arquivada. |
 
 ---
 
