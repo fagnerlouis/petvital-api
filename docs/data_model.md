@@ -21,6 +21,8 @@ A modelagem será focada nas entidades necessárias para o Produto Mínimo Viáv
 
 ## 1. Tabela: clinica
 
+> **Status:** ✅ Implementado — V1__criar_tabelas_iniciais_clinica.sql
+
 Armazena os dados de cada clínica (inquilino) ou veterinário autônomo que utiliza o sistema. Serve como entidade raiz (Tenant) do sistema de Multitenancy.
 
 > **Status:** ✅ Implementado — `V1__criar_tabela_clinica.sql`
@@ -66,6 +68,8 @@ Armazena os dados de cada clínica (inquilino) ou veterinário autônomo que uti
 
 ## 2. Tabela: usuario
 
+> **Status:** ✅ Implementado — V2__criar_tabelas_usuario_e_perfis.sql
+
 Armazena os usuários com acesso ao sistema. Quando `master = true`, o usuário é um Super Administrador da plataforma (RN026) e não fica vinculado a nenhuma clínica.
 
 > **Status:** ✅ Implementado — `V2__criar_tabela_usuario.sql`
@@ -86,6 +90,8 @@ Armazena os usuários com acesso ao sistema. Quando `master = true`, o usuário 
 ---
 
 ## 3. Tabela: tutor
+
+> **Status:** ✅ Implementado — V3__criar_tabelas_tutor_e_contatos.sql
 
 Armazena os dados dos tutores (proprietários) dos animais. O CPF é único dentro da mesma clínica, permitindo que o mesmo tutor exista em clínicas diferentes (multitenancy correto).
 
@@ -132,6 +138,8 @@ Armazena os dados dos tutores (proprietários) dos animais. O CPF é único dent
 
 ## 4. Tabela: animal
 
+> **Status:** ✅ Implementado — V4__criar_tabelas_animal.sql
+
 Armazena os dados dos animais (pacientes) vinculados a um tutor.
 
 | Coluna | Tipo de Dado | Restrições | Descrição |
@@ -172,6 +180,8 @@ Permite vincular um animal a múltiplos tutores (tutores adicionais).
 
 ## 6. Tabela: agendamento
 
+> **Status:** ✅ Implementado — V5__criar_tabela_agendamento.sql
+
 Controla o fluxo de agendamentos de consultas, vacinas, etc.
 
 | Coluna | Tipo de Dado | Restrições | Descrição |
@@ -190,7 +200,9 @@ Controla o fluxo de agendamentos de consultas, vacinas, etc.
 
 ---
 
-## 7. Tabela: consulta ✅ Implementado (`V6__criar_tabelas_consulta.sql`)
+## 7. Tabela: consulta
+
+> **Status:** ✅ Implementado — V6__criar_tabelas_consulta.sql
 
 Representa o registro do atendimento veterinário, vinculado a um agendamento. Imutável (RN006).
 
@@ -212,7 +224,9 @@ Representa o registro do atendimento veterinário, vinculado a um agendamento. I
 
 ---
 
-## 7.1. Tabela: consulta_historico ✅ Implementado (`V6__criar_tabelas_consulta.sql`)
+## 7.1. Tabela: consulta_historico
+
+> **Status:** ✅ Implementado — V6__criar_tabelas_consulta.sql
 
 Armazena o histórico de alterações do prontuário para garantir a imutabilidade (RN006).
 
@@ -252,7 +266,9 @@ Armazena referências a arquivos (imagens, PDFs, vídeos) vinculados a uma consu
 
 ---
 
-## 9. Tabela: peso_historico ✅ Implementado (`V7__criar_tabela_peso_historico.sql`)
+## 9. Tabela: peso_historico
+
+> **Status:** ✅ Implementado — V7__criar_tabela_peso_historico.sql
 
 Armazena o histórico de peso e Escala de Condição Corporal (ECC) do animal.
 
@@ -490,6 +506,8 @@ Este modelo de dados cobre todos os requisitos do MVP (Cadastro, Agenda, Prontu�
 ---
 
 ## 22. Tabela: consulta_historico
+
+> **Status:** ✅ Implementado — V6__criar_tabelas_consulta.sql
 
 Armazena o histórico de alterações do prontuário (tabela `consulta`), garantindo rastreabilidade e auditoria detalhada. **Tabela de histórico imutável (Append-Only), com triggers de banco de dados bloqueando qualquer UPDATE ou DELETE.**
 

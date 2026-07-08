@@ -25,7 +25,11 @@
 
 ## Manutenção da Documentação
 
-**REGRA OBRIGATÓRIA:** Sempre que uma tabela do banco de dados for criada ou alterada (via migration Flyway), o arquivo `docs/data_model.md` **DEVE** ser atualizado para refletir a estrutura real implementada.
+**REGRA OBRIGATÓRIA (DATA MODEL):** Sempre que uma tabela do banco de dados for criada ou alterada (via migration Flyway), o arquivo `docs/data_model.md` **DEVE** ser atualizado para refletir a estrutura real implementada.
+**IMPORTANTE:** Nunca coloque o status de implementado no cabeçalho Markdown (ex: `## 1. Tabela: clinica ✅`). O badge DEVE ser colocado em um blockquote imediatamente abaixo do título, seguindo este formato exato:
+`> **Status:** ✅ Implementado — V1__criar_tabela.sql`
+
+**REGRA OBRIGATÓRIA (MERMAID):** Sempre que a estrutura do banco for alterada, o diagrama entidade-relacionamento (Mermaid) no arquivo `docs/Documento de Requisitos do Sistema PetVital (MVP).md` **DEVE** ser atualizado na mesma sessão para manter a consistência visual do projeto.
 
 ## Estratégia de Branches
 

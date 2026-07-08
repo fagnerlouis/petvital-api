@@ -225,6 +225,8 @@ erDiagram
     clinica ||--o{ clinica_endereco : "localiza-se"
     clinica ||--o{ usuario : "pertence"
     clinica ||--o{ tutor : "pertence"
+    tutor ||--o{ tutor_telefone : "possui"
+    tutor ||--o{ tutor_endereco : "localiza-se"
     clinica ||--o{ animal : "pertence"
     clinica ||--o{ agendamento : "pertence"
     clinica ||--o{ consulta : "pertence"
@@ -317,6 +319,20 @@ erDiagram
         int id PK
         int clinica_id FK
         varchar cpf
+    }
+
+    tutor_telefone {
+        int id PK
+        int tutor_id FK
+        varchar numero
+        varchar tipo
+    }
+
+    tutor_endereco {
+        int id PK
+        int tutor_id FK
+        varchar cep
+        varchar cidade
     }
 
     animal {
