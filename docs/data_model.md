@@ -21,78 +21,112 @@ A modelagem será focada nas entidades necessárias para o Produto Mínimo Viáv
 
 ## 1. Tabela: clinica
 
-Armazena os dados de cada clínica (inquilino) que utiliza o sistema.
+Armazena os dados de cada clínica (inquilino) ou veterinário autônomo que utiliza o sistema. Serve como entidade raiz (Tenant) do sistema de Multitenancy.
+
+> **Status:** ✅ Implementado — `V1__criar_tabela_clinica.sql`
 
 | Coluna | Tipo de Dado | Restrições | Descrição |
 | :--- | :--- | :--- | :--- |
-| `id` | SERIAL | PRIMARY KEY | Identificador único do inquilino (clínica/autônomo). |
-| `tipo_tenant` | VARCHAR(20) | NOT NULL | Tipo de Inquilino: 'PJ' (Clínica) ou 'PF' (Autônomo). |
-| `nome` | VARCHAR(255) | NOT NULL | Nome fantasia (PJ) ou Nome completo (PF). |
-| `razao_social` | VARCHAR(255) | | Razão social (Apenas para PJ). |
-| `documento_fiscal` | VARCHAR(18) | UNIQUE, NOT NULL | CNPJ (se PJ) ou CPF (se PF). |
-| `crmv` | VARCHAR(20) | | CRMV (Apenas para PF/Autônomo). |
-| `email` | VARCHAR(255) | UNIQUE | E-mail de contato principal. |
-| `telefone` | VARCHAR(20) | | Telefone de contato. |
-| `ativo` | BOOLEAN | DEFAULT TRUE | Indica se o inquilino está ativo no sistema. |
-| `whatsapp_api_token` | VARCHAR(255) | | Token de acesso à API do WhatsApp Business (Armazenado criptografado na aplicação via AES-256-GCM). |
-| `whatsapp_numero` | VARCHAR(20) | | Número de telefone configurado para a API. |
-| `bloqueada` | BOOLEAN | DEFAULT FALSE | Indica se a clínica está bloqueada por inadimplência. |
-| `deletado` | BOOLEAN | DEFAULT FALSE | Flag de exclusão lógica (Soft Delete) para retenção e recuperação. |
-| `data_add` | TIMESTAMP | DEFAULT NOW() | Data de criação do registro. |
-| `data_alt` | TIMESTAMP | DEFAULT NOW() | Data da última alteração. |
+| `id` | BIGSERIAL | PRIMARY KEY | Identificador único do inquilino. |
+| `nome` | VARCHAR(255) | NOT NULL | Razão Social (PJ) ou Nome Completo (PF). |
+| `nome_fantasia` | VARCHAR(255) | | Nome Comercial. Opcional, apenas para PJ. |
+| `tipo_tenant` | VARCHAR(2) | NOT NULL, CHECK (PF,PJ) | Tipo de Inquilino: 'PJ' (Clínica) ou 'PF' (Autônomo). |
+| `documento_fiscal` | VARCHAR(14) | UNIQUE, NOT NULL | CNPJ (PJ) ou CPF (PF), somente dígitos. |
+| `email` | VARCHAR(255) | | E-mail de contato principal. |
+| `whatsapp_api_token` | VARCHAR(255) | | Token da API do WhatsApp (criptografado pela aplicação — RN014). |
+| `ativo` | BOOLEAN | NOT NULL, DEFAULT TRUE | Indica se o inquilino está ativo. |
+| `data_add` | TIMESTAMP | NOT NULL, DEFAULT NOW() | Data de criação do registro. Preenchida automaticamente. |
+| `data_alt` | TIMESTAMP | | Data da última alteração. Preenchida automaticamente. |
+
+### 1.1. Tabela: clinica_telefone
+
+| Coluna | Tipo de Dado | Restrições | Descrição |
+| :--- | :--- | :--- | :--- |
+| `id` | BIGSERIAL | PRIMARY KEY | Identificador único. |
+| `clinica_id` | BIGINT | FK (clinica), CASCADE DELETE | Clínica dona do telefone. |
+| `numero` | VARCHAR(20) | NOT NULL | Número de telefone. |
+| `tipo` | VARCHAR(50) | NOT NULL | Ex: WHATSAPP, CELULAR, FIXO. |
+| `is_principal` | BOOLEAN | NOT NULL, DEFAULT FALSE | Indica o telefone principal de contato. |
+
+### 1.2. Tabela: clinica_endereco
+
+| Coluna | Tipo de Dado | Restrições | Descrição |
+| :--- | :--- | :--- | :--- |
+| `id` | BIGSERIAL | PRIMARY KEY | Identificador único. |
+| `clinica_id` | BIGINT | FK (clinica), CASCADE DELETE | Clínica dona do endereço. |
+| `cep` | VARCHAR(10) | NOT NULL | CEP. |
+| `logradouro` | VARCHAR(255) | NOT NULL | Rua, Avenida, etc. |
+| `numero` | VARCHAR(50) | | Número do imóvel. |
+| `complemento` | VARCHAR(255) | | Complemento (apto, bloco). |
+| `bairro` | VARCHAR(100) | NOT NULL | Bairro. |
+| `cidade` | VARCHAR(100) | NOT NULL | Cidade. |
+| `estado` | VARCHAR(2) | NOT NULL | Estado (UF). |
 
 ---
 
 ## 2. Tabela: usuario
 
-Armazena os dados dos usuários que acessam o sistema (Administrador, Veterinário, Auxiliar, Recepção, Financeiro).
+Armazena os usuários com acesso ao sistema. Quando `master = true`, o usuário é um Super Administrador da plataforma (RN026) e não fica vinculado a nenhuma clínica.
+
+> **Status:** ✅ Implementado — `V2__criar_tabela_usuario.sql`
 
 | Coluna | Tipo de Dado | Restrições | Descrição |
 | :--- | :--- | :--- | :--- |
-| `id` | SERIAL | PRIMARY KEY | Identificador único do usuário. |
-| `clinica_id` | INTEGER | FOREIGN KEY (Clinica), Nullable | **Chave de Multitenancy.** Liga o usuário à sua clínica (nulo para SUPER_ADMIN). |
+| `id` | BIGSERIAL | PRIMARY KEY | Identificador único do usuário. |
+| `clinica_id` | BIGINT | FK (clinica), NULLABLE | **Chave de Multitenancy.** Nulo quando `master = true`. |
 | `nome` | VARCHAR(255) | NOT NULL | Nome completo do usuário. |
 | `email` | VARCHAR(255) | UNIQUE, NOT NULL | E-mail de login. |
-| `senha_hash` | VARCHAR(255) | NOT NULL | Hash da senha (nunca a senha em texto claro). |
-| `perfil` | VARCHAR(50) | NOT NULL | Perfil de acesso (Ex: 'SUPER_ADMIN', 'ADMIN', 'VETERINARIO', 'RECEPCAO'). |
-| `crmv` | VARCHAR(20) | | Número do CRMV (apenas para Veterinários). |
-| `ativo` | BOOLEAN | DEFAULT TRUE | Indica se o usuário está ativo. |
-| `deletado` | BOOLEAN | DEFAULT FALSE | Flag de exclusão lógica (Soft Delete). |
-| `data_add` | TIMESTAMP | DEFAULT NOW() | Data de criação do registro. |
-| `data_alt` | TIMESTAMP | DEFAULT NOW() | Data da última alteração. |
-
----
-
-**Próximo Passo:** Modelar as tabelas `Tutor` e `Animal`, garantindo que ambas possuam a chave `clinica_id` para manter o isolamento de dados.
+| `senha_hash` | VARCHAR(255) | NOT NULL | Hash BCrypt da senha. Nunca texto puro. |
+| `perfil` | VARCHAR(50) | NOT NULL, CHECK | Perfil: ADMIN, VETERINARIO, RECEPCAO, AUXILIAR, FINANCEIRO. |
+| `master` | BOOLEAN | NOT NULL, DEFAULT FALSE | Super Admin da plataforma. Quando `true`, acessa todos os tenants (RN026, RN027). |
+| `ativo` | BOOLEAN | NOT NULL, DEFAULT TRUE | Indica se o usuário está ativo. |
+| `data_add` | TIMESTAMP | NOT NULL, DEFAULT NOW() | Data de criação do registro. Preenchida automaticamente. |
+| `data_alt` | TIMESTAMP | | Data da última alteração. Preenchida automaticamente. |
 
 ---
 
 ## 3. Tabela: tutor
 
-Armazena os dados completos dos tutores (clientes) da clínica.
+Armazena os dados dos tutores (proprietários) dos animais. O CPF é único dentro da mesma clínica, permitindo que o mesmo tutor exista em clínicas diferentes (multitenancy correto).
+
+> **Status:** ✅ Implementado — `V3__criar_tabela_tutor.sql`
 
 | Coluna | Tipo de Dado | Restrições | Descrição |
 | :--- | :--- | :--- | :--- |
-| `id` | SERIAL | PRIMARY KEY | Identificador único do tutor. |
-| `clinica_id` | INTEGER | FOREIGN KEY (Clinica) | **Chave de Multitenancy.** Liga o tutor à sua clínica. |
+| `id` | BIGSERIAL | PRIMARY KEY | Identificador único do tutor. |
+| `clinica_id` | BIGINT | FK (clinica), NOT NULL | **Chave de Multitenancy.** Liga o tutor à sua clínica. |
 | `nome` | VARCHAR(255) | NOT NULL | Nome completo do tutor. |
-| `cpf` | VARCHAR(14) | UNIQUE | CPF do tutor (para NF e identificação). |
-| `rg` | VARCHAR(20) | | RG do tutor. |
-| `data_nascimento` | DATE | | Data de nascimento. |
-| `telefone_principal` | VARCHAR(20) | NOT NULL | Telefone principal (WhatsApp). |
+| `cpf` | VARCHAR(11) | NOT NULL | CPF (apenas dígitos). Único por clínica: UNIQUE(clinica_id, cpf). |
 | `email` | VARCHAR(255) | | E-mail para contato. |
-| `endereco_logradouro` | VARCHAR(255) | | Rua, Avenida, etc. |
-| `endereco_numero` | VARCHAR(20) | | Número do imóvel. |
-| `endereco_complemento` | VARCHAR(100) | | Complemento (apto, bloco). |
-| `endereco_bairro` | VARCHAR(100) | | Bairro. |
-| `endereco_cidade` | VARCHAR(100) | | Cidade. |
-| `endereco_estado` | VARCHAR(2) | | Estado (UF). |
-| `endereco_cep` | VARCHAR(10) | | CEP. |
-| `preferencia_contato` | VARCHAR(50) | DEFAULT 'WHATSAPP' | Ex: 'WHATSAPP', 'EMAIL', 'TELEFONE'. |
-| `observacoes` | TEXT | | Alertas ou restrições importantes. |
-| `aceita_comunicacao_informativa` | BOOLEAN | DEFAULT TRUE | Flag para mensagens não essenciais (propaganda, conteúdo). |
-| `data_add` | TIMESTAMP | DEFAULT NOW() | Data de criação do registro. |
-| `data_alt` | TIMESTAMP | DEFAULT NOW() | Data da última alteração. |
+| `data_nascimento` | DATE | | Data de nascimento. |
+| `aceita_comunicacao_informativa` | BOOLEAN | NOT NULL, DEFAULT FALSE | Consentimento LGPD para receber mensagens informativas (RN010). |
+| `ativo` | BOOLEAN | NOT NULL, DEFAULT TRUE | Indica se o tutor está ativo. |
+| `data_add` | TIMESTAMP | NOT NULL, DEFAULT NOW() | Data de criação do registro. Preenchida automaticamente. |
+| `data_alt` | TIMESTAMP | | Data da última alteração. Preenchida automaticamente. |
+
+### 3.1. Tabela: tutor_telefone
+
+| Coluna | Tipo de Dado | Restrições | Descrição |
+| :--- | :--- | :--- | :--- |
+| `id` | BIGSERIAL | PRIMARY KEY | Identificador único. |
+| `tutor_id` | BIGINT | FK (tutor), CASCADE DELETE | Tutor dono do telefone. |
+| `numero` | VARCHAR(20) | NOT NULL | Número de telefone. |
+| `tipo` | VARCHAR(50) | NOT NULL | Ex: WHATSAPP, CELULAR, FIXO. |
+| `is_principal` | BOOLEAN | NOT NULL, DEFAULT FALSE | Indica o telefone principal de contato. |
+
+### 3.2. Tabela: tutor_endereco
+
+| Coluna | Tipo de Dado | Restrições | Descrição |
+| :--- | :--- | :--- | :--- |
+| `id` | BIGSERIAL | PRIMARY KEY | Identificador único. |
+| `tutor_id` | BIGINT | FK (tutor), CASCADE DELETE | Tutor dono do endereço. |
+| `cep` | VARCHAR(10) | NOT NULL | CEP. |
+| `logradouro` | VARCHAR(255) | NOT NULL | Rua, Avenida, etc. |
+| `numero` | VARCHAR(50) | | Número do imóvel. |
+| `complemento` | VARCHAR(255) | | Complemento (apto, bloco). |
+| `bairro` | VARCHAR(100) | NOT NULL | Bairro. |
+| `cidade` | VARCHAR(100) | NOT NULL | Cidade. |
+| `estado` | VARCHAR(2) | NOT NULL | Estado (UF). |
 
 ---
 
@@ -102,9 +136,9 @@ Armazena os dados dos animais (pacientes) vinculados a um tutor.
 
 | Coluna | Tipo de Dado | Restrições | Descrição |
 | :--- | :--- | :--- | :--- |
-| `id` | SERIAL | PRIMARY KEY | Identificador único do animal. |
-| `clinica_id` | INTEGER | FOREIGN KEY (Clinica) | **Chave de Multitenancy.** Liga o animal à sua clínica. |
-| `tutor_principal_id` | INTEGER | FOREIGN KEY (Tutor) | Tutor principal responsável. |
+| `id` | BIGSERIAL | PRIMARY KEY | Identificador único do animal. |
+| `clinica_id` | BIGINT | FOREIGN KEY (Clinica) | **Chave de Multitenancy.** Liga o animal à sua clínica. |
+| `tutor_principal_id` | BIGINT | FOREIGN KEY (Tutor) | Tutor principal responsável. |
 | `nome` | VARCHAR(255) | NOT NULL | Nome do animal. |
 | `especie` | VARCHAR(50) | NOT NULL | Ex: 'Cão', 'Gato'. |
 | `raca` | VARCHAR(100) | | Raça do animal. |
@@ -127,8 +161,8 @@ Permite vincular um animal a múltiplos tutores (tutores adicionais).
 
 | Coluna | Tipo de Dado | Restrições | Descrição |
 | :--- | :--- | :--- | :--- |
-| `tutor_id` | INTEGER | FOREIGN KEY (Tutor) | Chave estrangeira para a tabela Tutor. |
-| `animal_id` | INTEGER | FOREIGN KEY (Animal) | Chave estrangeira para a tabela Animal. |
+| `tutor_id` | BIGINT | FOREIGN KEY (Tutor) | Chave estrangeira para a tabela Tutor. |
+| `animal_id` | BIGINT | FOREIGN KEY (Animal) | Chave estrangeira para a tabela Animal. |
 | `relacao` | VARCHAR(50) | | Ex: 'Tutor Secundário', 'Passeador'. |
 | `data_add` | TIMESTAMP | DEFAULT NOW() | Data de criação do registro. |
 | `data_alt` | TIMESTAMP | DEFAULT NOW() | Data da última alteração. |
@@ -142,10 +176,10 @@ Controla o fluxo de agendamentos de consultas, vacinas, etc.
 
 | Coluna | Tipo de Dado | Restrições | Descrição |
 | :--- | :--- | :--- | :--- |
-| `id` | SERIAL | PRIMARY KEY | Identificador único do agendamento. |
-| `clinica_id` | INTEGER | FOREIGN KEY (Clinica) | **Chave de Multitenancy.** |
-| `animal_id` | INTEGER | FOREIGN KEY (Animal) | Animal agendado. |
-| `veterinario_id` | INTEGER | FOREIGN KEY (Usuario) | Veterinário responsável pelo atendimento. |
+| `id` | BIGSERIAL | PRIMARY KEY | Identificador único do agendamento. |
+| `clinica_id` | BIGINT | FOREIGN KEY (Clinica) | **Chave de Multitenancy.** |
+| `animal_id` | BIGINT | FOREIGN KEY (Animal) | Animal agendado. |
+| `veterinario_id` | BIGINT | FOREIGN KEY (Usuario) | Veterinário responsável pelo atendimento. |
 | `data_hora_inicio` | TIMESTAMP | NOT NULL | Início do agendamento. |
 | `data_hora_fim` | TIMESTAMP | NOT NULL | Fim do agendamento. |
 | `tipo_atendimento` | VARCHAR(50) | NOT NULL | Ex: 'CONSULTA', 'RETORNO', 'VACINA', 'CIRURGIA'. |
@@ -162,10 +196,10 @@ Representa o registro do atendimento veterinário, vinculado a um agendamento.
 
 | Coluna | Tipo de Dado | Restrições | Descrição |
 | :--- | :--- | :--- | :--- |
-| `id` | SERIAL | PRIMARY KEY | Identificador único da consulta. |
-| `clinica_id` | INTEGER | FOREIGN KEY (Clinica) | **Chave de Multitenancy.** |
-| `agendamento_id` | INTEGER | FOREIGN KEY (Agendamento) | Agendamento que gerou a consulta. |
-| `veterinario_id` | INTEGER | FOREIGN KEY (Usuario) | Veterinário que realizou o atendimento. |
+| `id` | BIGSERIAL | PRIMARY KEY | Identificador único da consulta. |
+| `clinica_id` | BIGINT | FOREIGN KEY (Clinica) | **Chave de Multitenancy.** |
+| `agendamento_id` | BIGINT | FOREIGN KEY (Agendamento) | Agendamento que gerou a consulta. |
+| `veterinario_id` | BIGINT | FOREIGN KEY (Usuario) | Veterinário que realizou o atendimento. |
 | `motivo_consulta` | TEXT | NOT NULL | Motivo da visita. |
 | `anamnese` | TEXT | | Histórico e informações coletadas. |
 | `exame_fisico` | TEXT | | Resultados do exame físico (FC, FR, Tº, etc.). |
@@ -183,9 +217,9 @@ Armazena referências a arquivos (imagens, PDFs, vídeos) vinculados a uma consu
 
 | Coluna | Tipo de Dado | Restrições | Descrição |
 | :--- | :--- | :--- | :--- |
-| `id` | SERIAL | PRIMARY KEY | Identificador único do anexo. |
-| `clinica_id` | INTEGER | FOREIGN KEY (Clinica) | **Chave de Multitenancy.** |
-| `consulta_id` | INTEGER | FOREIGN KEY (Consulta) | Consulta à qual o anexo pertence. |
+| `id` | BIGSERIAL | PRIMARY KEY | Identificador único do anexo. |
+| `clinica_id` | BIGINT | FOREIGN KEY (Clinica) | **Chave de Multitenancy.** |
+| `consulta_id` | BIGINT | FOREIGN KEY (Consulta) | Consulta à qual o anexo pertence. |
 | `nome_arquivo` | VARCHAR(255) | NOT NULL | Nome original do arquivo. |
 | `url_armazenamento` | VARCHAR(512) | NOT NULL | URL do arquivo no S3/GCS. |
 | `tipo_mime` | VARCHAR(100) | | Tipo MIME do arquivo (ex: image/jpeg, application/pdf). |
@@ -202,12 +236,12 @@ Armazena o histórico de peso e Escala de Condição Corporal (ECC) do animal.
 
 | Coluna | Tipo de Dado | Restrições | Descrição |
 | :--- | :--- | :--- | :--- |
-| `id` | SERIAL | PRIMARY KEY | Identificador único do registro. |
-| `clinica_id` | INTEGER | FOREIGN KEY (Clinica) | **Chave de Multitenancy.** |
-| `animal_id` | INTEGER | FOREIGN KEY (Animal) | Animal que teve o peso registrado. |
+| `id` | BIGSERIAL | PRIMARY KEY | Identificador único do registro. |
+| `clinica_id` | BIGINT | FOREIGN KEY (Clinica) | **Chave de Multitenancy.** |
+| `animal_id` | BIGINT | FOREIGN KEY (Animal) | Animal que teve o peso registrado. |
 | `peso_kg` | NUMERIC(5, 2) | NOT NULL | Peso em quilogramas. |
 | `ecc` | INTEGER | | Escala de Condição Corporal (1 a 9). |
-| `usuario_registro_id` | INTEGER | FOREIGN KEY (Usuario) | Usuário que fez o registro. |
+| `usuario_registro_id` | BIGINT | FOREIGN KEY (Usuario) | Usuário que fez o registro. |
 | `data_add` | TIMESTAMP | DEFAULT NOW() | Data de criação do registro. |
 | `data_alt` | TIMESTAMP | DEFAULT NOW() | Data da última alteração. |
 
@@ -219,16 +253,16 @@ Armazena o registro de cada vacina aplicada no animal.
 
 | Coluna | Tipo de Dado | Restrições | Descrição |
 | :--- | :--- | :--- | :--- |
-| `id` | SERIAL | PRIMARY KEY | Identificador único da aplicação. |
-| `clinica_id` | INTEGER | FOREIGN KEY (Clinica) | **Chave de Multitenancy.** |
-| `animal_id` | INTEGER | FOREIGN KEY (Animal) | Animal vacinado. |
+| `id` | BIGSERIAL | PRIMARY KEY | Identificador único da aplicação. |
+| `clinica_id` | BIGINT | FOREIGN KEY (Clinica) | **Chave de Multitenancy.** |
+| `animal_id` | BIGINT | FOREIGN KEY (Animal) | Animal vacinado. |
 | `nome_vacina` | VARCHAR(100) | NOT NULL | Nome comercial da vacina. |
 | `data_aplicacao` | DATE | NOT NULL | Data em que a vacina foi aplicada. |
 | `data_proximo_reforco` | DATE | | Data prevista para o próximo reforço. |
 | `lote` | VARCHAR(50) | | Número do lote da vacina. |
 | `fabricante` | VARCHAR(100) | | Fabricante da vacina. |
 | `validade_vacina` | DATE | | Validade do produto. |
-| `profissional_id` | INTEGER | FOREIGN KEY (Usuario) | Profissional que aplicou. |
+| `profissional_id` | BIGINT | FOREIGN KEY (Usuario) | Profissional que aplicou. |
 | `data_add` | TIMESTAMP | DEFAULT NOW() | Data de criação do registro. |
 | `data_alt` | TIMESTAMP | DEFAULT NOW() | Data da última alteração. |
 
@@ -240,10 +274,10 @@ Armazena o cabeçalho de uma prescrição (receita) gerada em uma consulta.
 
 | Coluna | Tipo de Dado | Restrições | Descrição |
 | :--- | :--- | :--- | :--- |
-| `id` | SERIAL | PRIMARY KEY | Identificador único da prescrição. |
-| `clinica_id` | INTEGER | FOREIGN KEY (Clinica) | **Chave de Multitenancy.** |
-| `consulta_id` | INTEGER | FOREIGN KEY (Consulta) | Consulta que gerou a prescrição. |
-| `veterinario_id` | INTEGER | FOREIGN KEY (Usuario) | Veterinário que prescreveu. |
+| `id` | BIGSERIAL | PRIMARY KEY | Identificador único da prescrição. |
+| `clinica_id` | BIGINT | FOREIGN KEY (Clinica) | **Chave de Multitenancy.** |
+| `consulta_id` | BIGINT | FOREIGN KEY (Consulta) | Consulta que gerou a prescrição. |
+| `veterinario_id` | BIGINT | FOREIGN KEY (Usuario) | Veterinário que prescreveu. |
 | `tipo_receita` | VARCHAR(50) | NOT NULL | Ex: 'COMUM', 'CONTROLADA'. |
 | `data_add` | TIMESTAMP | DEFAULT NOW() | Data de criação do registro. |
 | `data_alt` | TIMESTAMP | DEFAULT NOW() | Data da última alteração. |
@@ -257,9 +291,9 @@ Armazena os itens (medicamentos) de uma prescrição.
 
 | Coluna | Tipo de Dado | Restrições | Descrição |
 | :--- | :--- | :--- | :--- |
-| `id` | SERIAL | PRIMARY KEY | Identificador único do item. |
-| `prescricao_id` | INTEGER | FOREIGN KEY (Prescricao) | Prescrição à qual o item pertence. |
-| `produto_id` | INTEGER | FOREIGN KEY (Produto) | Produto/Medicamento prescrito. |
+| `id` | BIGSERIAL | PRIMARY KEY | Identificador único do item. |
+| `prescricao_id` | BIGINT | FOREIGN KEY (Prescricao) | Prescrição à qual o item pertence. |
+| `produto_id` | BIGINT | FOREIGN KEY (Produto) | Produto/Medicamento prescrito. |
 | `dosagem` | VARCHAR(100) | NOT NULL | Dosagem (Ex: 5mg/kg). |
 | `frequencia` | VARCHAR(100) | NOT NULL | Frequência (Ex: a cada 12h). |
 | `duracao` | VARCHAR(100) | | Duração do tratamento. |
@@ -273,8 +307,8 @@ Armazena o cadastro de medicamentos, materiais e produtos para venda/uso.
 
 | Coluna | Tipo de Dado | Restrições | Descrição |
 | :--- | :--- | :--- | :--- |
-| `id` | SERIAL | PRIMARY KEY | Identificador único do produto. |
-| `clinica_id` | INTEGER | FOREIGN KEY (Clinica) | **Chave de Multitenancy.** |
+| `id` | BIGSERIAL | PRIMARY KEY | Identificador único do produto. |
+| `clinica_id` | BIGINT | FOREIGN KEY (Clinica) | **Chave de Multitenancy.** |
 | `nome` | VARCHAR(255) | NOT NULL | Nome do produto/medicamento. |
 | `tipo` | VARCHAR(50) | NOT NULL | Ex: 'MEDICAMENTO', 'MATERIAL', 'SERVICO'. |
 | `unidade_medida` | VARCHAR(20) | | Ex: 'COMP', 'ML', 'UN'. |
@@ -290,17 +324,17 @@ Registra todas as entradas e saídas de estoque (baixa automática por vacina, u
 
 | Coluna | Tipo de Dado | Restrições | Descrição |
 | :--- | :--- | :--- | :--- |
-| `id` | SERIAL | PRIMARY KEY | Identificador único do movimento. |
-| `clinica_id` | INTEGER | FOREIGN KEY (Clinica) | **Chave de Multitenancy.** |
-| `produto_id` | INTEGER | FOREIGN KEY (Produto) | Produto movimentado. |
+| `id` | BIGSERIAL | PRIMARY KEY | Identificador único do movimento. |
+| `clinica_id` | BIGINT | FOREIGN KEY (Clinica) | **Chave de Multitenancy.** |
+| `produto_id` | BIGINT | FOREIGN KEY (Produto) | Produto movimentado. |
 | `tipo_movimento` | VARCHAR(50) | NOT NULL | Ex: 'ENTRADA', 'SAIDA', 'AJUSTE'. |
 | `quantidade` | NUMERIC(10, 2) | NOT NULL | Quantidade movimentada. |
 | `lote` | VARCHAR(50) | | Lote do produto (se aplicável). |
 | `validade` | DATE | | Validade do produto (se aplicável). |
-| `referencia_id` | INTEGER | | ID da transação que gerou o movimento (Ex: `consulta_id`, `venda_id`). |
+| `referencia_id` | BIGINT | | ID da transação que gerou o movimento (Ex: `consulta_id`, `venda_id`). |
 | `data_add` | TIMESTAMP | DEFAULT NOW() | Data de criação do registro. |
 | `data_alt` | TIMESTAMP | DEFAULT NOW() | Data da última alteração. |
-| `usuario_id` | INTEGER | FOREIGN KEY (Usuario) | Usuário que registrou o movimento. |
+| `usuario_id` | BIGINT | FOREIGN KEY (Usuario) | Usuário que registrou o movimento. |
 
 ---
 
@@ -310,13 +344,13 @@ Representa o registro financeiro de um serviço ou venda.
 
 | Coluna | Tipo de Dado | Restrições | Descrição |
 | :--- | :--- | :--- | :--- |
-| `id` | SERIAL | PRIMARY KEY | Identificador único da fatura. |
-| `clinica_id` | INTEGER | FOREIGN KEY (Clinica) | **Chave de Multitenancy.** |
-| `tutor_id` | INTEGER | FOREIGN KEY (Tutor) | Tutor responsável pelo pagamento. |
+| `id` | BIGSERIAL | PRIMARY KEY | Identificador único da fatura. |
+| `clinica_id` | BIGINT | FOREIGN KEY (Clinica) | **Chave de Multitenancy.** |
+| `tutor_id` | BIGINT | FOREIGN KEY (Tutor) | Tutor responsável pelo pagamento. |
 | `data_emissao` | TIMESTAMP | DEFAULT NOW() | Data de emissão da fatura. |
 | `valor_total` | NUMERIC(10, 2) | NOT NULL | Valor total da fatura. |
 | `status` | VARCHAR(50) | NOT NULL | Ex: 'PENDENTE', 'PAGO', 'CANCELADO'. |
-| `referencia_id` | INTEGER | | ID da transação que gerou a fatura (Ex: `consulta_id`, `cirurgia_id`). |
+| `referencia_id` | BIGINT | | ID da transação que gerou a fatura (Ex: `consulta_id`, `cirurgia_id`). |
 
 ---
 
@@ -326,13 +360,13 @@ Registra cada pagamento efetuado para uma fatura.
 
 | Coluna | Tipo de Dado | Restrições | Descrição |
 | :--- | :--- | :--- | :--- |
-| `id` | SERIAL | PRIMARY KEY | Identificador único do pagamento. |
-| `fatura_id` | INTEGER | FOREIGN KEY (Fatura) | Fatura paga. |
+| `id` | BIGSERIAL | PRIMARY KEY | Identificador único do pagamento. |
+| `fatura_id` | BIGINT | FOREIGN KEY (Fatura) | Fatura paga. |
 | `valor_pago` | NUMERIC(10, 2) | NOT NULL | Valor do pagamento. |
 | `forma_pagamento` | VARCHAR(50) | NOT NULL | Ex: 'PIX', 'CARTAO_CREDITO', 'DINHEIRO'. |
 | `data_add` | TIMESTAMP | DEFAULT NOW() | Data de criação do registro. |
 | `data_alt` | TIMESTAMP | DEFAULT NOW() | Data da última alteração. |
-| `usuario_registro_id` | INTEGER | FOREIGN KEY (Usuario) | Usuário que registrou o pagamento. |
+| `usuario_registro_id` | BIGINT | FOREIGN KEY (Usuario) | Usuário que registrou o pagamento. |
 
 ---
 
@@ -342,8 +376,8 @@ Armazena configurações específicas da clínica (protocolos vacinais, textos p
 
 | Coluna | Tipo de Dado | Restrições | Descrição |
 | :--- | :--- | :--- | :--- |
-| `id` | SERIAL | PRIMARY KEY | Identificador único da configuração. |
-| `clinica_id` | INTEGER | FOREIGN KEY (Clinica) | **Chave de Multitenancy.** |
+| `id` | BIGSERIAL | PRIMARY KEY | Identificador único da configuração. |
+| `clinica_id` | BIGINT | FOREIGN KEY (Clinica) | **Chave de Multitenancy.** |
 | `chave` | VARCHAR(100) | NOT NULL | Chave da configuração (Ex: 'PROTOCOLO_VACINAL_CAO', 'LEMBRETE_VACINA_DIAS_ANTECEDENCIA'). |
 | `valor` | JSONB | | Valor da configuração (JSON para flexibilidade). Ex: `{"dias_antecedencia": 3}`. |
 | **Chave Composta** | | UNIQUE (clinica_id, chave) | Garante que cada clínica tenha apenas uma configuração por chave. |
@@ -356,11 +390,11 @@ Armazena o histórico de alterações em dados sensíveis (LGPD e segurança). *
 
 | Coluna | Tipo de Dado | Restrições | Descrição |
 | :--- | :--- | :--- | :--- |
-| `id` | SERIAL | PRIMARY KEY | Identificador único do log. |
-| `clinica_id` | INTEGER | FOREIGN KEY (Clinica) | **Chave de Multitenancy.** |
-| `usuario_id` | INTEGER | FOREIGN KEY (Usuario) | Usuário que realizou a ação. |
+| `id` | BIGSERIAL | PRIMARY KEY | Identificador único do log. |
+| `clinica_id` | BIGINT | FOREIGN KEY (Clinica) | **Chave de Multitenancy.** |
+| `usuario_id` | BIGINT | FOREIGN KEY (Usuario) | Usuário que realizou a ação. |
 | `tabela_afetada` | VARCHAR(100) | NOT NULL | Tabela onde a alteração ocorreu. |
-| `registro_id` | INTEGER | NOT NULL | ID do registro afetado. |
+| `registro_id` | BIGINT | NOT NULL | ID do registro afetado. |
 | `tipo_acao` | VARCHAR(10) | NOT NULL | Ex: 'INSERT', 'UPDATE', 'DELETE'. |
 | `dados_antigos` | JSONB | | Dados antes da alteração. |
 | `dados_novos` | JSONB | | Dados após a alteração. |
@@ -375,8 +409,8 @@ Armazena os modelos de mensagens automáticas (ex: lembrete de vacina, lembrete 
 
 | Coluna | Tipo de Dado | Restrições | Descrição |
 | :--- | :--- | :--- | :--- |
-| `id` | SERIAL | PRIMARY KEY | Identificador único do template. |
-| `clinica_id` | INTEGER | FOREIGN KEY (clinica) | Chave de Multitenancy. |
+| `id` | BIGSERIAL | PRIMARY KEY | Identificador único do template. |
+| `clinica_id` | BIGINT | FOREIGN KEY (clinica) | Chave de Multitenancy. |
 | `chave` | VARCHAR(100) | NOT NULL | Chave de identificação (Ex: 'LEMBRETE_VACINA_3_DIAS'). |
 | `titulo` | VARCHAR(255) | NOT NULL | Título do template. |
 | `conteudo` | TEXT | NOT NULL | Conteúdo do template (com placeholders como {animal_nome}). |
@@ -391,9 +425,9 @@ Armazena as mensagens criadas pelos veterinários/administradores para envio em 
 
 | Coluna | Tipo de Dado | Restrições | Descrição |
 | :--- | :--- | :--- | :--- |
-| `id` | SERIAL | PRIMARY KEY | Identificador único da mensagem em massa. |
-| `clinica_id` | INTEGER | FOREIGN KEY (clinica) | Chave de Multitenancy. |
-| `usuario_criacao_id` | INTEGER | FOREIGN KEY (usuario) | Usuário que criou a mensagem. |
+| `id` | BIGSERIAL | PRIMARY KEY | Identificador único da mensagem em massa. |
+| `clinica_id` | BIGINT | FOREIGN KEY (clinica) | Chave de Multitenancy. |
+| `usuario_criacao_id` | BIGINT | FOREIGN KEY (usuario) | Usuário que criou a mensagem. |
 | `titulo` | VARCHAR(255) | NOT NULL | Título interno da campanha. |
 | `conteudo_base` | TEXT | NOT NULL | Conteúdo da mensagem antes da personalização. |
 | `status_campanha` | VARCHAR(50) | NOT NULL | Ex: 'RASCUNHO', 'AGENDADA', 'ENVIANDO', 'CONCLUIDA'. |
@@ -409,13 +443,13 @@ Armazena o histórico de todas as mensagens enviadas (automáticas e em massa) a
 
 | Coluna | Tipo de Dado | Restrições | Descrição |
 | :--- | :--- | :--- | :--- |
-| `id` | SERIAL | PRIMARY KEY | Identificador único do histórico. |
-| `clinica_id` | INTEGER | FOREIGN KEY (clinica) | Chave de Multitenancy. |
-| `tutor_id` | INTEGER | FOREIGN KEY (tutor) | Tutor que recebeu a mensagem. |
+| `id` | BIGSERIAL | PRIMARY KEY | Identificador único do histórico. |
+| `clinica_id` | BIGINT | FOREIGN KEY (clinica) | Chave de Multitenancy. |
+| `tutor_id` | BIGINT | FOREIGN KEY (tutor) | Tutor que recebeu a mensagem. |
 | `tipo_mensagem` | VARCHAR(50) | NOT NULL | Ex: 'VACINA_LEMBRETE', 'CONSULTA_LEMBRETE', 'MENSAGEM_MASSA'. |
 | `conteudo` | TEXT | NOT NULL | Conteúdo completo da mensagem enviada. |
 | `status_envio` | VARCHAR(50) | NOT NULL | Ex: 'ENVIADO', 'FALHA', 'LIDO'. |
-| `referencia_id` | INTEGER | | ID da transação que gerou a mensagem (Ex: `vacina_aplicada.id`). |
+| `referencia_id` | BIGINT | | ID da transação que gerou a mensagem (Ex: `vacina_aplicada.id`). |
 | `data_add` | TIMESTAMP | DEFAULT NOW() | Data de envio da mensagem. |
 | `data_alt` | TIMESTAMP | DEFAULT NOW() | Data da última alteração (status). |
 
@@ -439,10 +473,10 @@ Armazena o histórico de alterações do prontuário (tabela `consulta`), garant
 
 | Coluna | Tipo de Dado | Restrições | Descrição |
 | :--- | :--- | :--- | :--- |
-| `id` | SERIAL | PRIMARY KEY | Identificador único do registro de histórico. |
-| `clinica_id` | INTEGER | FOREIGN KEY (clinica) | Chave de Multitenancy. |
-| `consulta_id` | INTEGER | FOREIGN KEY (consulta) | Consulta original que foi alterada. |
-| `usuario_alteracao_id` | INTEGER | FOREIGN KEY (usuario) | Usuário que realizou a alteração. |
+| `id` | BIGSERIAL | PRIMARY KEY | Identificador único do registro de histórico. |
+| `clinica_id` | BIGINT | FOREIGN KEY (clinica) | Chave de Multitenancy. |
+| `consulta_id` | BIGINT | FOREIGN KEY (consulta) | Consulta original que foi alterada. |
+| `usuario_alteracao_id` | BIGINT | FOREIGN KEY (usuario) | Usuário que realizou a alteração. |
 | `motivo_alteracao` | TEXT | | Breve descrição do motivo da alteração. |
 | `dados_anteriores` | JSONB | NOT NULL | Cópia completa dos dados da consulta antes da alteração. |
 | `data_add` | TIMESTAMP | DEFAULT NOW() | Data e hora da alteração. |
@@ -456,7 +490,7 @@ Armazena as definições de planos comercializados na plataforma SaaS.
 
 | Coluna | Tipo de Dado | Restrições | Descrição |
 | :--- | :--- | :--- | :--- |
-| `id` | SERIAL | PRIMARY KEY | Identificador único do plano. |
+| `id` | BIGSERIAL | PRIMARY KEY | Identificador único do plano. |
 | `nome` | VARCHAR(100) | UNIQUE, NOT NULL | Nome comercial (ex: 'Bronze', 'Prata', 'Ouro'). |
 | `preco` | NUMERIC(10, 2) | NOT NULL | Valor mensal da assinatura. |
 | `limite_usuarios` | INTEGER | | Limite de usuários ativos na clínica. |
@@ -473,9 +507,9 @@ Armazena as assinaturas ativas e histórico comercial das clínicas contratantes
 
 | Coluna | Tipo de Dado | Restrições | Descrição |
 | :--- | :--- | :--- | :--- |
-| `id` | SERIAL | PRIMARY KEY | Identificador único da assinatura. |
-| `clinica_id` | INTEGER | FOREIGN KEY (Clinica) | Clínica associada à assinatura. |
-| `plano_id` | INTEGER | FOREIGN KEY (Plano) | Plano contratado. |
+| `id` | BIGSERIAL | PRIMARY KEY | Identificador único da assinatura. |
+| `clinica_id` | BIGINT | FOREIGN KEY (Clinica) | Clínica associada à assinatura. |
+| `plano_id` | BIGINT | FOREIGN KEY (Plano) | Plano contratado. |
 | `status` | VARCHAR(50) | NOT NULL | Status ('ATIVA', 'TRIAL', 'ATRASADA', 'BLOQUEADA', 'CANCELADA'). |
 | `data_inicio` | TIMESTAMP | NOT NULL | Data de início da vigência. |
 | `data_fim_vigencia` | TIMESTAMP | | Data de término da vigência atual. |
@@ -492,8 +526,8 @@ Armazena os tokens temporários gerados para fluxo de recuperação de credencia
 
 | Coluna | Tipo de Dado | Restrições | Descrição |
 | :--- | :--- | :--- | :--- |
-| `id` | SERIAL | PRIMARY KEY | Identificador único do token. |
-| `usuario_id` | INTEGER | FOREIGN KEY (Usuario) | Usuário que solicitou a recuperação. |
+| `id` | BIGSERIAL | PRIMARY KEY | Identificador único do token. |
+| `usuario_id` | BIGINT | FOREIGN KEY (Usuario) | Usuário que solicitou a recuperação. |
 | `token` | VARCHAR(255) | UNIQUE, NOT NULL | Token criptograficamente seguro gerado pela aplicação. |
 | `data_expiracao` | TIMESTAMP | NOT NULL | Data e hora limite para uso. |
 | `usado` | BOOLEAN | DEFAULT FALSE | Indica se o token já foi consumido. |
@@ -507,9 +541,9 @@ Armazena o registro de exceções técnicas ocorridas na execução da API para 
 
 | Coluna | Tipo de Dado | Restrições | Descrição |
 | :--- | :--- | :--- | :--- |
-| `id` | SERIAL | PRIMARY KEY | Identificador único do log. |
-| `clinica_id` | INTEGER | FOREIGN KEY (Clinica), Nullable | Clínica ativa no momento do erro. |
-| `usuario_id` | INTEGER | FOREIGN KEY (Usuario), Nullable | Usuário que disparou a ação. |
+| `id` | BIGSERIAL | PRIMARY KEY | Identificador único do log. |
+| `clinica_id` | BIGINT | FOREIGN KEY (Clinica), Nullable | Clínica ativa no momento do erro. |
+| `usuario_id` | BIGINT | FOREIGN KEY (Usuario), Nullable | Usuário que disparou a ação. |
 | `classe_excecao` | VARCHAR(255) | NOT NULL | Nome da classe Java da exceção. |
 | `mensagem` | TEXT | | Mensagem amigável de erro. |
 | `stack_trace` | TEXT | | Stack trace completo da falha técnica. |
@@ -526,10 +560,10 @@ Controla o estado de abertura, fechamento e fluxo financeiro diário de cada cl�
 
 | Coluna | Tipo de Dado | Restrições | Descrição |
 | :--- | :--- | :--- | :--- |
-| `id` | SERIAL | PRIMARY KEY | Identificador único da sessão de caixa. |
-| `clinica_id` | INTEGER | FOREIGN KEY (Clinica) | Clínica proprietária do caixa. |
-| `usuario_abertura_id` | INTEGER | FOREIGN KEY (Usuario) | Usuário que realizou a abertura do dia. |
-| `usuario_fechamento_id` | INTEGER | FOREIGN KEY (Usuario), Nullable | Usuário que encerrou o caixa do dia. |
+| `id` | BIGSERIAL | PRIMARY KEY | Identificador único da sessão de caixa. |
+| `clinica_id` | BIGINT | FOREIGN KEY (Clinica) | Clínica proprietária do caixa. |
+| `usuario_abertura_id` | BIGINT | FOREIGN KEY (Usuario) | Usuário que realizou a abertura do dia. |
+| `usuario_fechamento_id` | BIGINT | FOREIGN KEY (Usuario), Nullable | Usuário que encerrou o caixa do dia. |
 | `saldo_inicial` | NUMERIC(10, 2) | NOT NULL | Saldo de abertura em caixa. |
 | `saldo_final` | NUMERIC(10, 2) | | Saldo no encerramento (verificado). |
 | `status` | VARCHAR(20) | NOT NULL | Status do caixa ('ABERTO', 'FECHADO'). |
@@ -545,14 +579,14 @@ Registra as entradas e saídas detalhadas de dinheiro associadas a um caixa diá
 
 | Coluna | Tipo de Dado | Restrições | Descrição |
 | :--- | :--- | :--- | :--- |
-| `id` | SERIAL | PRIMARY KEY | Identificador único da movimentação. |
-| `clinica_id` | INTEGER | FOREIGN KEY (Clinica) | Clínica da movimentação. |
-| `caixa_diario_id` | INTEGER | FOREIGN KEY (caixa_diario) | Sessão de caixa ativa correspondente. |
-| `usuario_id` | INTEGER | FOREIGN KEY (Usuario) | Operador responsável pelo lançamento. |
+| `id` | BIGSERIAL | PRIMARY KEY | Identificador único da movimentação. |
+| `clinica_id` | BIGINT | FOREIGN KEY (Clinica) | Clínica da movimentação. |
+| `caixa_diario_id` | BIGINT | FOREIGN KEY (caixa_diario) | Sessão de caixa ativa correspondente. |
+| `usuario_id` | BIGINT | FOREIGN KEY (Usuario) | Operador responsável pelo lançamento. |
 | `tipo_movimentacao` | VARCHAR(20) | NOT NULL | 'ENTRADA' (recebimento, reforço) ou 'SAIDA' (sangria, despesa). |
 | `valor` | NUMERIC(10, 2) | NOT NULL | Valor monetário movimentado. |
 | `motivo` | VARCHAR(255) | NOT NULL | Descrição ou observações da movimentação. |
-| `referencia_pagamento_id` | INTEGER | FOREIGN KEY (Pagamento), Nullable | Conexão com o pagamento de fatura, se aplicável. |
+| `referencia_pagamento_id` | BIGINT | FOREIGN KEY (Pagamento), Nullable | Conexão com o pagamento de fatura, se aplicável. |
 | `deletado` | BOOLEAN | DEFAULT FALSE | Flag de exclusão lógica (Soft Delete). |
 | `data_add` | TIMESTAMP | DEFAULT NOW() | Data e hora do lançamento. |
 
@@ -564,8 +598,8 @@ Cadastro de procedimentos e consultas veterinárias oferecidos comercialmente pe
 
 | Coluna | Tipo de Dado | Restrições | Descrição |
 | :--- | :--- | :--- | :--- |
-| `id` | SERIAL | PRIMARY KEY | Identificador único do serviço. |
-| `clinica_id` | INTEGER | FOREIGN KEY (Clinica) | Clínica que oferece o serviço. |
+| `id` | BIGSERIAL | PRIMARY KEY | Identificador único do serviço. |
+| `clinica_id` | BIGINT | FOREIGN KEY (Clinica) | Clínica que oferece o serviço. |
 | `nome` | VARCHAR(255) | NOT NULL | Nome do serviço/procedimento. |
 | `preco` | NUMERIC(10, 2) | NOT NULL | Preço padrão cobrado pela clínica. |
 | `ativo` | BOOLEAN | DEFAULT TRUE | Indica se o serviço está ativo para novos agendamentos. |
@@ -581,11 +615,11 @@ Registra e rastreia os documentos e laudos médicos gerados em formato PDF pelo 
 
 | Coluna | Tipo de Dado | Restrições | Descrição |
 | :--- | :--- | :--- | :--- |
-| `id` | SERIAL | PRIMARY KEY | Identificador único da emissão. |
-| `clinica_id` | INTEGER | FOREIGN KEY (Clinica) | Clínica emissora. |
-| `usuario_id` | INTEGER | FOREIGN KEY (Usuario) | Usuário que solicitou a geração do PDF. |
+| `id` | BIGSERIAL | PRIMARY KEY | Identificador único da emissão. |
+| `clinica_id` | BIGINT | FOREIGN KEY (Clinica) | Clínica emissora. |
+| `usuario_id` | BIGINT | FOREIGN KEY (Usuario) | Usuário que solicitou a geração do PDF. |
 | `tipo_documento` | VARCHAR(50) | NOT NULL | Tipo ('RECEITA', 'LAUDO', 'FATURA'). |
-| `referencia_id` | INTEGER | NOT NULL | ID do registro referenciado (ex: `consulta.id` ou `fatura.id`). |
+| `referencia_id` | BIGINT | NOT NULL | ID do registro referenciado (ex: `consulta.id` ou `fatura.id`). |
 | `hash_documento` | VARCHAR(255) | NOT NULL | Hash sha-256 do arquivo gerado para auditoria e controle de integridade. |
 | `deletado` | BOOLEAN | DEFAULT FALSE | Flag de exclusão lógica (Soft Delete). |
 | `data_add` | TIMESTAMP | DEFAULT NOW() | Data de geração do documento. |
