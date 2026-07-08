@@ -210,6 +210,67 @@
       "headers": [
         { "name": "Authorization", "value": "Bearer {{ _.token }}" }
       ]
+    },
+    {
+      "_id": "fld_agendamento",
+      "_type": "request_group",
+      "parentId": "wrk_petvital",
+      "name": "📅 Agendamento"
+    },
+    {
+      "_id": "req_agendamento_criar",
+      "_type": "request",
+      "parentId": "fld_agendamento",
+      "name": "Criar Agendamento",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/agendamentos",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n\t\"clinicaId\": 1,\n\t\"animalId\": 1,\n\t\"veterinarioId\": 4,\n\t\"dataHoraInicio\": \"2026-08-01T09:00:00\",\n\t\"dataHoraFim\": \"2026-08-01T10:00:00\",\n\t\"tipoAtendimento\": \"CONSULTA\",\n\t\"observacoes\": \"Primeira consulta do paciente\"\n}"
+      },
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "Authorization", "value": "Bearer {{ _.token }}" }
+      ]
+    },
+    {
+      "_id": "req_agendamento_buscar",
+      "_type": "request",
+      "parentId": "fld_agendamento",
+      "name": "Buscar Agendamento por ID",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/agendamentos/1?clinicaId=1",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.token }}" }
+      ]
+    },
+    {
+      "_id": "req_agendamento_listar",
+      "_type": "request",
+      "parentId": "fld_agendamento",
+      "name": "Listar Agendamentos da Clínica",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/agendamentos?clinicaId=1",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.token }}" }
+      ]
+    },
+    {
+      "_id": "req_agendamento_atualizar_status",
+      "_type": "request",
+      "parentId": "fld_agendamento",
+      "name": "Atualizar Status do Agendamento",
+      "method": "PATCH",
+      "url": "{{ _.base_url }}/api/agendamentos/1/status?clinicaId=1",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n\t\"status\": \"CONFIRMADO\"\n}"
+      },
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "Authorization", "value": "Bearer {{ _.token }}" }
+      ]
     }
   ]
 }
+
