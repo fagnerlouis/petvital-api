@@ -1,0 +1,215 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_date": "2026-07-08T12:00:00.000Z",
+  "__export_source": "insomnia.desktop.app:v2023.5.8",
+  "resources": [
+    {
+      "_id": "wrk_petvital",
+      "_type": "workspace",
+      "name": "PetVital API",
+      "description": "Collection de endpoints da API PetVital (MVP)",
+      "scope": "collection"
+    },
+    {
+      "_id": "env_petvital_base",
+      "_type": "environment",
+      "parentId": "wrk_petvital",
+      "name": "Local",
+      "data": {
+        "base_url": "http://localhost:8080",
+        "token": ""
+      }
+    },
+    {
+      "_id": "fld_auth",
+      "_type": "request_group",
+      "parentId": "wrk_petvital",
+      "name": "🔐 Autenticação"
+    },
+    {
+      "_id": "req_auth_login",
+      "_type": "request",
+      "parentId": "fld_auth",
+      "name": "Login",
+      "method": "POST",
+      "url": "{{ _.base_url }}/auth/login",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n\t\"email\": \"admin@petvital.com\",\n\t\"senha\": \"petvital@2024\"\n}"
+      },
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ]
+    },
+    {
+      "_id": "fld_clinica",
+      "_type": "request_group",
+      "parentId": "wrk_petvital",
+      "name": "🏥 Clínica"
+    },
+    {
+      "_id": "req_clinica_criar",
+      "_type": "request",
+      "parentId": "fld_clinica",
+      "name": "Criar Clínica",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/clinicas",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n\t\"nome\": \"Clínica PetVital Matriz\",\n\t\"nomeFantasia\": \"PetVital Center\",\n\t\"tipoTenant\": \"PJ\",\n\t\"documentoFiscal\": \"12345678901234\",\n\t\"email\": \"contato@petvital.com\",\n\t\"telefones\": [\n\t\t{\n\t\t\t\"numero\": \"11999999999\",\n\t\t\t\"tipo\": \"WHATSAPP\",\n\t\t\t\"isPrincipal\": true\n\t\t}\n\t],\n\t\"enderecos\": [\n\t\t{\n\t\t\t\"cep\": \"01001000\",\n\t\t\t\"logradouro\": \"Praça da Sé\",\n\t\t\t\"numero\": \"S/N\",\n\t\t\t\"bairro\": \"Sé\",\n\t\t\t\"cidade\": \"São Paulo\",\n\t\t\t\"estado\": \"SP\"\n\t\t}\n\t]\n}"
+      },
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ]
+    },
+    {
+      "_id": "req_clinica_buscar",
+      "_type": "request",
+      "parentId": "fld_clinica",
+      "name": "Buscar Clínica por ID",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/clinicas/1",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.token }}" }
+      ]
+    },
+    {
+      "_id": "fld_usuario",
+      "_type": "request_group",
+      "parentId": "wrk_petvital",
+      "name": "👤 Usuário"
+    },
+    {
+      "_id": "req_usuario_criar",
+      "_type": "request",
+      "parentId": "fld_usuario",
+      "name": "Criar Usuário (vinculado à clínica)",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/usuarios",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n\t\"nome\": \"Dr. João Silva\",\n\t\"email\": \"joao@clinicateste.com\",\n\t\"senha\": \"senha123\",\n\t\"perfil\": \"VETERINARIO\",\n\t\"clinicaId\": 1\n}"
+      },
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "Authorization", "value": "Bearer {{ _.token }}" }
+      ]
+    },
+    {
+      "_id": "req_usuario_criar_master",
+      "_type": "request",
+      "parentId": "fld_usuario",
+      "name": "Criar Usuário Master",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/usuarios",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n\t\"nome\": \"Suporte PetVital\",\n\t\"email\": \"suporte@petvital.com\",\n\t\"senha\": \"suporte@2024\",\n\t\"perfil\": \"ADMIN\",\n\t\"master\": true\n}"
+      },
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "Authorization", "value": "Bearer {{ _.token }}" }
+      ]
+    },
+    {
+      "_id": "fld_tutor",
+      "_type": "request_group",
+      "parentId": "wrk_petvital",
+      "name": "🧑 Tutor"
+    },
+    {
+      "_id": "req_tutor_criar",
+      "_type": "request",
+      "parentId": "fld_tutor",
+      "name": "Criar Tutor",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/tutores",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n\t\"nome\": \"Maria da Silva\",\n\t\"cpf\": \"12345678901\",\n\t\"email\": \"maria@email.com\",\n\t\"dataNascimento\": \"1985-03-15\",\n\t\"aceitaComunicacaoInformativa\": true,\n\t\"clinicaId\": 1,\n\t\"telefones\": [\n\t\t{\n\t\t\t\"numero\": \"11987654321\",\n\t\t\t\"tipo\": \"WHATSAPP\",\n\t\t\t\"isPrincipal\": true\n\t\t}\n\t],\n\t\"enderecos\": [\n\t\t{\n\t\t\t\"cep\": \"01310100\",\n\t\t\t\"logradouro\": \"Av. Paulista\",\n\t\t\t\"numero\": \"1000\",\n\t\t\t\"bairro\": \"Bela Vista\",\n\t\t\t\"cidade\": \"São Paulo\",\n\t\t\t\"estado\": \"SP\"\n\t\t}\n\t]\n}"
+      },
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "Authorization", "value": "Bearer {{ _.token }}" }
+      ]
+    },
+    {
+      "_id": "req_tutor_buscar",
+      "_type": "request",
+      "parentId": "fld_tutor",
+      "name": "Buscar Tutor por ID",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/tutores/1?clinicaId=1",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.token }}" }
+      ]
+    },
+    {
+      "_id": "req_tutor_listar",
+      "_type": "request",
+      "parentId": "fld_tutor",
+      "name": "Listar Tutores da Clínica",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/tutores?clinicaId=1",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.token }}" }
+      ]
+    },
+    {
+      "_id": "fld_animal",
+      "_type": "request_group",
+      "parentId": "wrk_petvital",
+      "name": "🐾 Animal"
+    },
+    {
+      "_id": "req_animal_criar",
+      "_type": "request",
+      "parentId": "fld_animal",
+      "name": "Criar Animal",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/animais",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n\t\"nome\": \"Rex\",\n\t\"especie\": \"Cão\",\n\t\"raca\": \"Golden Retriever\",\n\t\"sexo\": \"MACHO\",\n\t\"cor\": \"Dourado\",\n\t\"pelagem\": \"Longa\",\n\t\"dataNascimento\": \"2021-05-10\",\n\t\"alergias\": null,\n\t\"doencasCronicas\": null,\n\t\"clinicaId\": 1,\n\t\"tutorPrincipalId\": 1,\n\t\"tutoresSecundariosIds\": []\n}"
+      },
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "Authorization", "value": "Bearer {{ _.token }}" }
+      ]
+    },
+    {
+      "_id": "req_animal_buscar",
+      "_type": "request",
+      "parentId": "fld_animal",
+      "name": "Buscar Animal por ID",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/animais/1?clinicaId=1",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.token }}" }
+      ]
+    },
+    {
+      "_id": "req_animal_listar",
+      "_type": "request",
+      "parentId": "fld_animal",
+      "name": "Listar Animais da Clínica",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/animais?clinicaId=1",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.token }}" }
+      ]
+    },
+    {
+      "_id": "req_animal_listar_por_tutor",
+      "_type": "request",
+      "parentId": "fld_animal",
+      "name": "Listar Animais por Tutor",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/animais?clinicaId=1&tutorId=1",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.token }}" }
+      ]
+    }
+  ]
+}
