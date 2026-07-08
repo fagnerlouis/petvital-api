@@ -341,6 +341,39 @@
       "headers": [
         { "name": "Authorization", "value": "Bearer {{ _.token }}" }
       ]
+    },
+    {
+      "_id": "fld_peso",
+      "_type": "request_group",
+      "parentId": "wrk_petvital",
+      "name": "⚖️ Histórico de Peso"
+    },
+    {
+      "_id": "req_peso_registrar",
+      "_type": "request",
+      "parentId": "fld_peso",
+      "name": "Registrar Peso",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/pesos",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n\t\"clinicaId\": 1,\n\t\"animalId\": 1,\n\t\"pesoKg\": 12.5,\n\t\"ecc\": 5\n}"
+      },
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "Authorization", "value": "Bearer {{ _.token }}" }
+      ]
+    },
+    {
+      "_id": "req_peso_listar",
+      "_type": "request",
+      "parentId": "fld_peso",
+      "name": "Listar Pesos do Animal",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/pesos/animal/1?clinicaId=1",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.token }}" }
+      ]
     }
   ]
 }

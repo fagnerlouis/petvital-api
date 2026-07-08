@@ -252,7 +252,7 @@ Armazena referências a arquivos (imagens, PDFs, vídeos) vinculados a uma consu
 
 ---
 
-## 9. Tabela: peso_historico
+## 9. Tabela: peso_historico ✅ Implementado (`V7__criar_tabela_peso_historico.sql`)
 
 Armazena o histórico de peso e Escala de Condição Corporal (ECC) do animal.
 
