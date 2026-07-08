@@ -287,6 +287,8 @@ Armazena o histórico de peso e Escala de Condição Corporal (ECC) do animal.
 
 ## 10. Tabela: vacina_aplicada
 
+> **Status:** ✅ Implementado — V8__criar_tabela_vacina_aplicada.sql
+
 Armazena o registro de cada vacina aplicada no animal.
 
 | Coluna | Tipo de Dado | Restrições | Descrição |

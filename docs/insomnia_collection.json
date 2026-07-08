@@ -374,6 +374,39 @@
       "headers": [
         { "name": "Authorization", "value": "Bearer {{ _.token }}" }
       ]
+    },
+    {
+      "_id": "fld_vacina",
+      "_type": "request_group",
+      "parentId": "wrk_petvital",
+      "name": "💉 Vacinas"
+    },
+    {
+      "_id": "req_vacina_registrar",
+      "_type": "request",
+      "parentId": "fld_vacina",
+      "name": "Registrar Vacina",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/vacinas",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n\t\"clinicaId\": 1,\n\t\"animalId\": 1,\n\t\"profissionalId\": 4,\n\t\"nomeVacina\": \"V10\",\n\t\"dataAplicacao\": \"2023-10-01\",\n\t\"dataProximoReforco\": \"2024-10-01\",\n\t\"lote\": \"L12345\",\n\t\"fabricante\": \"Zoetis\",\n\t\"validadeVacina\": \"2025-01-01\"\n}"
+      },
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "Authorization", "value": "Bearer {{ _.token }}" }
+      ]
+    },
+    {
+      "_id": "req_vacina_listar",
+      "_type": "request",
+      "parentId": "fld_vacina",
+      "name": "Listar Vacinas do Animal",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/vacinas/animal/1?clinicaId=1",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.token }}" }
+      ]
     }
   ]
 }
