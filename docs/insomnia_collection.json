@@ -270,7 +270,79 @@
         { "name": "Content-Type", "value": "application/json" },
         { "name": "Authorization", "value": "Bearer {{ _.token }}" }
       ]
+    },
+    {
+      "_id": "fld_consulta",
+      "_type": "request_group",
+      "parentId": "wrk_petvital",
+      "name": "📋 Consulta (Prontuário)"
+    },
+    {
+      "_id": "req_consulta_criar",
+      "_type": "request",
+      "parentId": "fld_consulta",
+      "name": "Criar Consulta",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/consultas",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n\t\"clinicaId\": 1,\n\t\"agendamentoId\": 1,\n\t\"veterinarioId\": 4,\n\t\"motivoConsulta\": \"Animal não está comendo\",\n\t\"anamnese\": \"Tutor relata apatia há 2 dias.\",\n\t\"exameFisico\": \"Mucosas normocoradas, temperatura 39.5\",\n\t\"diagnostico\": \"Suspeita de infecção gastrointestinal.\",\n\t\"conduta\": \"Exame de sangue solicitado.\",\n\t\"historicoPrevio\": \"Nenhum relevante.\"\n}"
+      },
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "Authorization", "value": "Bearer {{ _.token }}" }
+      ]
+    },
+    {
+      "_id": "req_consulta_atualizar",
+      "_type": "request",
+      "parentId": "fld_consulta",
+      "name": "Atualizar Consulta (RN006)",
+      "method": "PUT",
+      "url": "{{ _.base_url }}/api/consultas/1?clinicaId=1",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n\t\"clinicaId\": 1,\n\t\"agendamentoId\": 1,\n\t\"veterinarioId\": 4,\n\t\"motivoConsulta\": \"Animal não está comendo\",\n\t\"anamnese\": \"Tutor relata apatia há 2 dias e agora vômito.\",\n\t\"exameFisico\": \"Mucosas pálidas, temperatura 39.8\",\n\t\"diagnostico\": \"Infecção gastrointestinal grave.\",\n\t\"conduta\": \"Internação imediata.\",\n\t\"historicoPrevio\": \"Nenhum relevante.\"\n}"
+      },
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "Authorization", "value": "Bearer {{ _.token }}" }
+      ]
+    },
+    {
+      "_id": "req_consulta_buscar",
+      "_type": "request",
+      "parentId": "fld_consulta",
+      "name": "Buscar Consulta por ID",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/consultas/1?clinicaId=1",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.token }}" }
+      ]
+    },
+    {
+      "_id": "req_consulta_listar",
+      "_type": "request",
+      "parentId": "fld_consulta",
+      "name": "Listar Consultas da Clínica",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/consultas?clinicaId=1",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.token }}" }
+      ]
+    },
+    {
+      "_id": "req_consulta_historico",
+      "_type": "request",
+      "parentId": "fld_consulta",
+      "name": "Listar Histórico da Consulta",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/consultas/1/historico?clinicaId=1",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.token }}" }
+      ]
     }
   ]
 }
+
 
