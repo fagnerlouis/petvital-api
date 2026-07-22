@@ -310,6 +310,8 @@ Armazena o registro de cada vacina aplicada no animal.
 
 ## 11. Tabela: prescricao
 
+> **Status:** ✅ Implementado — V9__criar_tabelas_produto_estoque_prescricao.sql
+
 Armazena o cabeçalho de uma prescrição (receita) gerada em uma consulta.
 
 | Coluna | Tipo de Dado | Restrições | Descrição |
@@ -327,6 +329,8 @@ Armazena o cabeçalho de uma prescrição (receita) gerada em uma consulta.
 
 ## 12. Tabela: prescricao_item
 
+> **Status:** ✅ Implementado — V9__criar_tabelas_produto_estoque_prescricao.sql
+
 Armazena os itens (medicamentos) de uma prescrição.
 
 | Coluna | Tipo de Dado | Restrições | Descrição |
@@ -342,6 +346,8 @@ Armazena os itens (medicamentos) de uma prescrição.
 ---
 
 ## 13. Tabela: produto
+
+> **Status:** ✅ Implementado — V9__criar_tabelas_produto_estoque_prescricao.sql
 
 Armazena o cadastro de medicamentos, materiais e produtos para venda/uso.
 
@@ -359,6 +365,8 @@ Armazena o cadastro de medicamentos, materiais e produtos para venda/uso.
 ---
 
 ## 14. Tabela: estoque_movimento
+
+> **Status:** ✅ Implementado — V9__criar_tabelas_produto_estoque_prescricao.sql
 
 Registra todas as entradas e saídas de estoque (baixa automática por vacina, uso em cirurgia, venda, compra).
 
