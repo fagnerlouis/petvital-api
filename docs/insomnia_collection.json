@@ -407,6 +407,99 @@
       "headers": [
         { "name": "Authorization", "value": "Bearer {{ _.token }}" }
       ]
+    },
+    {
+      "_id": "fld_produto",
+      "_type": "request_group",
+      "parentId": "wrk_petvital",
+      "name": "📦 Produtos e Estoque"
+    },
+    {
+      "_id": "req_produto_criar",
+      "_type": "request",
+      "parentId": "fld_produto",
+      "name": "Criar Produto",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/produtos",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n\t\"clinicaId\": 1,\n\t\"nome\": \"Bravecto 10-20kg\",\n\t\"tipo\": \"MEDICAMENTO\",\n\t\"unidadeMedida\": \"COMP\",\n\t\"estoqueMinimo\": 5.0,\n\t\"precoVenda\": 220.0\n}"
+      },
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "Authorization", "value": "Bearer {{ _.token }}" }
+      ]
+    },
+    {
+      "_id": "req_produto_listar",
+      "_type": "request",
+      "parentId": "fld_produto",
+      "name": "Listar Produtos",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/produtos?clinicaId=1",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.token }}" }
+      ]
+    },
+    {
+      "_id": "req_estoque_movimento",
+      "_type": "request",
+      "parentId": "fld_produto",
+      "name": "Registrar Movimento de Estoque",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/produtos/movimentos",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n\t\"clinicaId\": 1,\n\t\"produtoId\": 1,\n\t\"tipoMovimento\": \"ENTRADA\",\n\t\"quantidade\": 10.0,\n\t\"lote\": \"LT-2023X\",\n\t\"validade\": \"2025-12-31\"\n}"
+      },
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "Authorization", "value": "Bearer {{ _.token }}" }
+      ]
+    },
+    {
+      "_id": "req_estoque_listar",
+      "_type": "request",
+      "parentId": "fld_produto",
+      "name": "Listar Movimentos do Produto",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/produtos/1/movimentos?clinicaId=1",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.token }}" }
+      ]
+    },
+    {
+      "_id": "fld_prescricao",
+      "_type": "request_group",
+      "parentId": "wrk_petvital",
+      "name": "📝 Prescrição"
+    },
+    {
+      "_id": "req_prescricao_criar",
+      "_type": "request",
+      "parentId": "fld_prescricao",
+      "name": "Criar Prescrição (RN008)",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/prescricoes",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n\t\"clinicaId\": 1,\n\t\"consultaId\": 1,\n\t\"tipoReceita\": \"COMUM\",\n\t\"instrucoesGerais\": \"Retorno em 15 dias.\",\n\t\"itens\": [\n\t\t{\n\t\t\t\"produtoId\": 1,\n\t\t\t\"dosagem\": \"1 comprimido\",\n\t\t\t\"frequencia\": \"Dose única\",\n\t\t\t\"observacoes\": \"Oferecer com alimento\"\n\t\t}\n\t]\n}"
+      },
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "Authorization", "value": "Bearer {{ _.token }}" }
+      ]
+    },
+    {
+      "_id": "req_prescricao_listar",
+      "_type": "request",
+      "parentId": "fld_prescricao",
+      "name": "Listar Prescrições da Consulta",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/prescricoes/consulta/1?clinicaId=1",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.token }}" }
+      ]
     }
   ]
 }
